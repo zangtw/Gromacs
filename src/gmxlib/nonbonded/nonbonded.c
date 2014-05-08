@@ -610,6 +610,10 @@ do_nonbonded_listed(int ftype, int nbonds,
                 c6               = iparams[itype].ljcnb.c6;
                 c12              = iparams[itype].ljcnb.c12;
                 break;
+						case F_VDW14:  /* New interaction introduced in MulTop. See MultiTopo.c */
+                qq               = 0;
+                c6               = iparams[itype].ljcnb.c6;
+                c12              = iparams[itype].ljcnb.c12;
             default:
                 /* Cannot happen since we called gmx_fatal() above in this case */
                 qq = c6 = c12 = 0; /* Keep compiler happy */

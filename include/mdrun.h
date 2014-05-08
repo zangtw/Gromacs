@@ -88,6 +88,7 @@ extern "C" {
 #define MD_TUNEPME        (1<<20)
 #define MD_TESTVERLET     (1<<22)
 #define MD_ADAPTIVETEMPERING    (1<<23)
+#define MD_MULTOP         (1<<24)
 
 /* The options for the domain decomposition MPI task ordering */
 enum {

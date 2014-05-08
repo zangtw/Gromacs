@@ -215,43 +215,50 @@ static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
 
   /* nsttemp: frequency of tempering, 0: disable, -1: only ns */
   at->nsttemp = -1;
-  if (cfgget(cfg, &at->nsttemp, "nsttemp", "%d"), "assuming default: at->nsttemp = -1, key: nsttemp\n");
+  if (cfgget(cfg, &at->nsttemp, "nsttemp", "%d"))
+		fprintf(stderr, "assuming default: at->nsttemp = -1, key: nsttemp\n");
 
   /* mvreps: number of repeating Langevin eq */
   at->mvreps = 1;
-  if (cfgget(cfg, &at->mvreps, "move_repeats", "%d"), "assuming default: at->mvreps = 1, key: move_repeats\n");
+  if (cfgget(cfg, &at->mvreps, "move_repeats", "%d"))
+		fprintf(stderr, "assuming default: at->mvreps = 1, key: move_repeats\n");
 
   /* tmstep: MD integration step, for convenience */
   at->tmstep = tmstep;
 
   /* nsttrace: interval of writing trace file; -1: only when doing neighbor search, 0: disable */
   at->nsttrace = -1;
-  if (cfgget(cfg, &at->nsttrace, "nsttrace", "%d"), "assuming default: at->nsttrace = -1, key: nsttrace\n");
+  if (cfgget(cfg, &at->nsttrace, "nsttrace", "%d"))
+		fprintf(stderr, "assuming default: at->nsttrace = -1, key: nsttrace\n");
 
   /* grand: function pointer to a gaussian random number generator */
   at->grand = &grand0;
   
 	/* rng_file: file name of random number state */
   at->rng_file = NULL;
-  if (cfgget(cfg, &at->rng_file, "rng_file", "%s"), "assuming default: at->rng_file = NULL, key: rng_file\n");
+  if (cfgget(cfg, &at->rng_file, "rng_file", "%s"))
+		fprintf(stderr, "assuming default: at->rng_file = NULL, key: rng_file\n");
 
   /* trace_file: name of trace file */
 	strcpy(buf, "TRACE");
 	strcat(buf, suf);
   at->trace_file = ssdup(buf);
-  if (cfgget(cfg, &at->trace_file, "trace_file", "%s"), "assuming default: at->trace_file = \"TRACE\", key: trace_file\n");
+  if (cfgget(cfg, &at->trace_file, "trace_file", "%s"))
+		fprintf(stderr, "assuming default: at->trace_file = \"TRACE\", key: trace_file\n");
 
   /* log: logfile */
   at->log = NULL;
 
   /* bTH : 0: disable; 1:enable */
   at->bTH = 0;
-  if (cfgget(cfg, &at->bTH, "boost_mode", "%d"), "assuming default: at->th_mode = 0, key: boost_mode\n");
+  if (cfgget(cfg, &at->bTH, "boost_mode", "%d")) 
+		fprintf(stderr, "assuming default: at->th_mode = 0, key: boost_mode\n");
 
   /* TH_Tref */
   at->TH_Tref = 300.0;
   if (at->bTH)
-    if (cfgget(cfg, &at->TH_Tref, "boost_Tref", "%lf"), "assuming default: at->th_Tref = 300.0, key: boost_Tref\n");
+    if (cfgget(cfg, &at->TH_Tref, "boost_Tref", "%lf"))
+			fprintf(stderr, "assuming default: at->th_Tref = 300.0, key: boost_Tref\n");
 
   /* kappa0 */
   at->kappa0 = 1.0;
@@ -262,7 +269,8 @@ static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
   /* epsilon0 */
   at->epsilon0 = 0.0;
   if (at->bTH)
-    if (cfgget(cfg, &at->epsilon0, "epsilon0", "%lf"), "assuming default: at->epsilon0 = 0.0, key: epsilon0\n");
+    if (cfgget(cfg, &at->epsilon0, "epsilon0", "%lf"))
+			fprintf(stderr, "assuming default: at->epsilon0 = 0.0, key: epsilon0\n");
   
   /* mb: handle for multiple-bin estimator */
 	at->mb = mb_cfgopen(cfg, at->bmin, at->bmax, at->suffix);
@@ -320,6 +328,11 @@ static void at_close_low(at_t *at)
 real AdaptTempering_CurrentBeta(at_t *at)
 {
 	return at->beta;
+}
+
+real AdaptTempering_CurrentT(at_t *at)
+{
+	return Beta2T(at->beta);
 }
 
 real AdaptTempering_CurrentPara(at_t *at)

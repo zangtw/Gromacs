@@ -1206,7 +1206,7 @@ void AdaptTemperingPrintExchangeStatistics(at_t * at, FILE *fplog, at_repl_ex_t 
     print_transition_matrix(fplog, "", re->nrepl, re->nmoves, re->nattempt);
 }
 
-gmx_bool AdaptTemperingCalcForce(FILE *fplog, t_commrec *cr, 
+void AdaptTemperingCalcForce(FILE *fplog, t_commrec *cr, 
 		t_inputrec *inputrec, gmx_large_int_t step, t_nrnb *nrnb, 
 		gmx_wallcycle_t wcycle, gmx_localtop_t *top, gmx_mtop_t *mtop,
 		gmx_groups_t *groups, matrix box, rvec x[], history_t *hist, rvec f[], 
@@ -1215,15 +1215,6 @@ gmx_bool AdaptTemperingCalcForce(FILE *fplog, t_commrec *cr,
 		rvec mu_tot, double t, FILE *field, gmx_edsam_t ed, gmx_bool bBornRadii,
 		int flags, at_t *at, gmx_bool bFirstStep)
 {
-	gmx_bool bUpdated;
-
-	/* For future use */
-	/* if(bUpdated || bFirstStep)
-	 * {
-	 *
-	 * }
-	 */
-
 	do_force(fplog, cr, inputrec, step, nrnb, wcycle, top, mtop, groups, box, x, hist,
            f, vir_force, mdatoms, enerd, fcd, lambda, graph, fr, vsite, mu_tot, t, 
 	  			 field, ed, bBornRadii, flags);
@@ -1242,6 +1233,9 @@ gmx_bool AdaptTemperingCalcForce(FILE *fplog, t_commrec *cr,
       f[i][2] *= scale; 
     }
   }
+}
 
-	return bUpdated;
+real AdaptTemperingCurrentTemperature(at_t *at)
+{
+	return AdaptTempering_CurrentT(at);
 }

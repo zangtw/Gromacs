@@ -93,6 +93,7 @@
 #include "types/iteratedconstraints.h"
 #include "nbnxn_cuda_data_mgmt.h"
 #include "AdaptTemperingUtil.h"
+#include "MultiTopo.h"
 
 #ifdef GMX_LIB_MPI
 #include <mpi.h>
@@ -245,10 +246,17 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 
 		/* Below are variables for adaptive tempering */
 		gmx_bool bAdaptTempering = Flags & MD_ADAPTIVETEMPERING;
-		gmx_bool bAdaptTemperingUpdated;
+		gmx_bool bAdaptTemperingUpdated = 0;
 		gmx_bool do_tempering;
 		at_t *AdaptTempering;
 		at_repl_ex_t *at_repl_ex = NULL;
+		
+		/* Below are variables for multiple topologies */
+		gmx_bool bMulTop = Flags & MD_MULTOP;
+		int MulTopNumber;
+		mt_gtops_t *MulTopGlobal;  
+		mt_ltops_t *MulTopLocal;
+		real MulTopAdditionalEnergy[F_EPOT];
 
 		/* Initialize the adaptive tempering */
 		if(bAdaptTempering)
@@ -259,6 +267,45 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
       
 			if(MASTER(cr))
 				fprintf(stderr, "\nNOTE: Adaptive tempering is turned on. For multiple copies, parameter exchange scheme will be used instead of normal temperature exchange scheme by default. (See ref.)\n");
+		}
+		
+		/* Initialize the multiple topologies */
+		if(bMulTop)
+		{
+			char **MulTopFileNames;
+			t_state **states;
+			
+			MulTopNumber = opt2fns(&MulTopFileNames, "-multop", nfile, fnm) + 1;
+
+			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 450, 500, 1, MASTER(cr));
+			MulTop_Global_SetReferenceTopology(MulTopGlobal, top_global);
+
+			snew(states, MulTopNumber);
+			states[0] = state_global;
+			for(i=1; i<MulTopNumber; i++)
+				snew(states[i],1);
+			MulTop_Global_GetOtherTopologies(MulTopGlobal, MulTopFileNames, cr, states);
+			
+			if(MASTER(cr))
+			{
+				if(Flags & MD_STARTFROMCPT)
+					MulTop_Global_LoadData(MulTopGlobal);
+				else
+					MulTop_Global_CalcData(MulTopGlobal, states, state_global);
+
+				MulTop_Global_RefreshForceFieldParameters(MulTopGlobal);
+			}
+
+			/* just for debug */
+			/*MulTopGlobal->Tref = 450;*/
+			/*MulTopGlobal->Tmax = 500;*/
+			/*MulTopGlobal->Wmax = 1;*/
+
+			MulTop_Global_Bcast(MulTopGlobal, cr);
+
+			for(i=1; i<MulTopNumber; i++)
+				sfree(states[i]);
+			sfree(states);
 		}
 
     /* Check for special mdrun options */
@@ -458,6 +505,14 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
             dd_make_local_pull_groups(NULL, ir->pull, mdatoms);
         }
     }
+		
+		if(bMulTop)
+		{
+			MulTopLocal = MulTop_Local_Init(MulTopGlobal);
+			MulTop_Local_SetReferenceTopology(MulTopLocal, top);
+
+			MulTop_Local_GetOtherTopologies(MulTopLocal, MulTopGlobal, cr, ir);
+		}
 
     if (DOMAINDECOMP(cr))
     {
@@ -469,6 +524,12 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                             nrnb, wcycle, FALSE);
 
     }
+
+		/* update LocalRecords and LocalExcls(coming next..). This operation must be done after every re-partition of the system. */
+		if(bMulTop)
+		{
+			MulTop_Local_UpdateRecords(MulTopLocal, cr->dd);
+		}
 
     update_mdatoms(mdatoms, state->lambda[efptMASS]);
 
@@ -1056,6 +1117,11 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                                     do_verbose && !bPMETuneRunning);
                 wallcycle_stop(wcycle, ewcDOMDEC);
                 /* If using an iterative integrator, reallocate space to match the decomposition */
+		
+								if(bMulTop)
+								{
+									MulTop_Local_UpdateRecords(MulTopLocal, cr->dd);
+								}
             }
         }
 
@@ -1184,6 +1250,27 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                 force_flags |= GMX_FORCE_DO_LR;
             }
         }
+				
+				/* Before doing force, update the final topology */
+				if(bMulTop)
+				{
+					/* always update at the first step */
+					if(bFirstStep)
+					{
+						MulTop_Local_InitFinalTopology(MulTopLocal);
+
+						MulTop_Local_UpdateFinalTopology(MulTopLocal, MulTopAdditionalEnergy, ir->opts.ref_t[0]);
+					}
+					
+					/* if tempering is applied, update after every temperature move. */
+					if(bAdaptTempering)
+					{
+						if(bAdaptTemperingUpdated || bFirstStep)
+						{
+							MulTop_Local_UpdateFinalTopology(MulTopLocal, MulTopAdditionalEnergy, AdaptTemperingCurrentTemperature(AdaptTempering));
+						}
+					}
+				}
 
         if (shellfc)
         {
@@ -1206,13 +1293,14 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
         }
         else if(bAdaptTempering)
 				{
-					bAdaptTemperingUpdated = AdaptTemperingCalcForce(fplog, cr, ir, step, nrnb, wcycle, top, top_global,
-							                            groups, state->box, state->x, &state->hist, f,
-																  		    force_vir, mdatoms, enerd, fcd, state->lambda,
-																			    graph, fr, vsite, mu_tot, t, outf->fp_field,
-																			    ed, bBornRadii, (bNS ? GMX_FORCE_NS : 0) | force_flags,
-																					AdaptTempering,
-																					bFirstStep);
+					AdaptTemperingCalcForce(fplog, cr, ir, step, nrnb, wcycle, top, top_global,
+							                    groups, state->box, state->x, &state->hist, f,
+																  force_vir, mdatoms, enerd, fcd, state->lambda,
+																	graph, fr, vsite, mu_tot, t, outf->fp_field,
+																	ed, bBornRadii, (bNS ? GMX_FORCE_NS : 0) | force_flags,
+																	AdaptTempering, bFirstStep);
+
+					bAdaptTemperingUpdated = 0;
 				}
 				else
         {
@@ -1228,6 +1316,13 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                      fr, vsite, mu_tot, t, outf->fp_field, ed, bBornRadii,
                      (bNS ? GMX_FORCE_NS : 0) | force_flags);
         }
+				
+				/* After doing force, add the additional energy terms. */
+				if(bMulTop)
+				{
+					for(i=0; i<F_EPOT; i++)
+						enerd->term[i] += MulTopAdditionalEnergy[i];
+				}
 
         GMX_BARRIER(cr->mpi_comm_mygroup);
 
@@ -2135,6 +2230,11 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                                     state, &f, mdatoms, top, fr,
                                     vsite, shellfc, constr,
                                     nrnb, wcycle, FALSE);
+		
+								if(bMulTop)
+								{
+									MulTop_Local_UpdateRecords(MulTopLocal, cr->dd);
+								}
             }
         }
 

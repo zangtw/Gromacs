@@ -81,6 +81,9 @@ struct AdaptTemperingType{
 /* Returns the current beta */
 real AdaptTempering_CurrentBeta(at_t *at);
 
+/* Returns the current temperature */
+real AdaptTempering_CurrentT(at_t *at);
+
 /* Returns the current paramters in macrocanonical ensemble. */
 real AdaptTempering_CurrentPara(at_t *at);
 

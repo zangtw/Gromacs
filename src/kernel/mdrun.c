@@ -708,6 +708,7 @@ int cmain(int argc, char *argv[])
     Flags = Flags | (sim_part > 1    ? MD_STARTFROMCPT : 0);
     Flags = Flags | (bResetCountersHalfWay ? MD_RESETCOUNTERSHALFWAY : 0);
     Flags = Flags | ((opt2bSet("-at", NFILE, fnm)) ? MD_ADAPTIVETEMPERING : 0);
+    Flags = Flags | ((opt2bSet("-multop", NFILE, fnm)) ? MD_MULTOP : 0);
 
     /* We postpone opening the log file if we are appending, so we can
        first truncate the old log file and append to the correct position
