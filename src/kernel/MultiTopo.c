@@ -9,6 +9,7 @@
 #include "mvdata.h"
 #include "network.h"
 #include "domdec.h"
+#include "filenm.h"
 #include "mtop_util.h"
 #include "MultiTopo.h"
 
@@ -951,6 +952,41 @@ static void MulTop_Local_UpdateFinalTopologyBasic(mt_ltops_t *ltops)
 /*################################################
  * non-static functions */
 
+int MulTop_Global_GetInputFileName(char **fns[], const char *opt, int nfile, const t_filenm fnm[], t_commrec *cr)
+{
+  int ntop, i;
+	char mysim[2];
+  char *fname, *p;
+
+	ntop = opt2fns(fns, opt, nfile, fnm);
+
+	/* replace the  */
+	if(cr->ms != NULL)
+	{
+		if (cr->ms->nsim >= 10)
+			gmx_fatal(FARGS,"Dont support number of simulations larger than 9.\n");
+		sprintf(mysim,"%d",cr->ms->sim);
+	}
+	else mysim[0]='\0';
+
+	for(i=0; i<ntop; i++)
+	{
+		fname = *(fns[i]);
+	
+		p = strstr(fname, ".tpr.mdp");
+	
+		if(mysim[0] != '\0')
+		{
+			strncpy(p, mysim, 1);
+			p++;
+		}
+		strncpy(p, ".tpr",4);
+		p[4] = '\0';
+	}
+
+	return ntop+1;
+}
+
 mt_gtops_t *MulTop_Global_Init(int ntop, real Tref, real Tmax, real Wmax, gmx_bool bMASTER)
 {
 	int i;
@@ -1210,17 +1246,53 @@ void MulTop_Global_RefreshForceFieldParameters(mt_gtops_t *gtops)
 			reflist=&(mtop0->moltype[b0].ilist[ftype]);
 				
 			/* First copy the reflist to the new list */
+			int constr_start_index;
+			int constr_end_index;
+			int settle_start_index;
+			int settle_end_index;
+			int ff_curr_record = ff_curr;
+			if(reflist->nr > 0)
+			{
+				constr_start_index = reflist->iatoms[0];
+				constr_end_index = reflist->iatoms[0] - 1;
+				settle_start_index = reflist->iatoms[0];
+				settle_end_index = reflist->iatoms[0] - 1;
+			}
+				
 			for(;	curr<reflist->nr; curr++)
 			{
+				gmx_bool bAddNewFunc;
+
 				if(!(curr % (nratoms+1)))
 				{
-					functype_buf[ff_curr] = mtop0->ffparams.functype[reflist->iatoms[curr]];
+					if(ftype == F_CONSTR)
+					{
+						if(reflist->iatoms[curr] > constr_end_index)
+							{ bAddNewFunc = 1; constr_end_index ++;}
+						else bAddNewFunc = 0; /* As constraint and settle are not allowed in the additional topologies, we don't need to add repeating interactions here. */
+					}
+					else if(ftype == F_SETTLE)
+					{
+						if(reflist->iatoms[curr] > settle_end_index)
+							{ bAddNewFunc = 1; settle_end_index ++;}
+						else bAddNewFunc = 0;
+					}
+					else bAddNewFunc = 1;
 
-					iparams_copy(&(iparams_buf[0][ff_curr]), &(mtop0->ffparams.iparams[reflist->iatoms[curr]]), ftype);
+					if(bAddNewFunc)
+					{
+						functype_buf[ff_curr] = mtop0->ffparams.functype[reflist->iatoms[curr]];
 
-					iatoms[curr] = ff_curr;
+						iparams_copy(&(iparams_buf[0][ff_curr]), &(mtop0->ffparams.iparams[reflist->iatoms[curr]]), ftype);
 
-					ff_curr++;
+						iatoms[curr] = ff_curr;
+
+						ff_curr++;
+					}
+					else if(ftype == F_CONSTR)
+						iatoms[curr] = ff_curr_record + reflist->iatoms[curr] - constr_start_index;
+					else  /* if(ftype == F_SETTLE) */
+						iatoms[curr] = ff_curr_record + reflist->iatoms[curr] - settle_start_index;
 				}
 				else
 					iatoms[curr] = reflist->iatoms[curr];

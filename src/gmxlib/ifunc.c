@@ -121,6 +121,7 @@ const t_interaction_function interaction_function[F_NRE] =
     def_nofc    ("GBPOL",    "GB Polarization" ),
     def_nofc    ("NPSOLVATION", "Nonpolar Sol." ),
     def_bondedz ("LJ14",     "LJ-14",           2, 2, 2,  eNR_NB14,   unimplemented ),
+    def_bondedz ("VDW14",    "VDW-14",           2, 2, 2,  eNR_NB14,   unimplemented ),
     def_nofc    ("COUL14",   "Coulomb-14"                                           ),
     def_bondedz ("LJC14_Q",  "LJC-14 q",        2, 5, 0,  eNR_NB14,   unimplemented ),
     def_bondedz ("LJC_NB",   "LJC Pairs NB",    2, 4, 0,  eNR_NB14,   unimplemented ),
@@ -178,6 +179,5 @@ const t_interaction_function interaction_function[F_NRE] =
     def_nofc    ("DVV/DL",   "dVvdw/dl"         ),
     def_nofc    ("DVB/DL",   "dVbonded/dl"      ),
     def_nofc    ("DVR/DL",   "dVrestraint/dl"   ),
-    def_nofc    ("DVT/DL",   "dVtemperature/dl" ),
-    def_bondedz ("VDW14",    "VDW-14",           2, 2, 2,  eNR_NB14,   unimplemented )
+    def_nofc    ("DVT/DL",   "dVtemperature/dl" )
 };

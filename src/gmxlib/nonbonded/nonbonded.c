@@ -535,6 +535,7 @@ do_nonbonded_listed(int ftype, int nbonds,
     switch (ftype)
     {
         case F_LJ14:
+				case F_VDW14:
         case F_LJC14_Q:
             energygrp_elec = grppener->ener[egCOUL14];
             energygrp_vdw  = grppener->ener[egLJ14];

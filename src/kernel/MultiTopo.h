@@ -11,6 +11,9 @@
 typedef struct MulTop_GlobalTops_t mt_gtops_t;
 typedef struct MulTop_LocalTops_t  mt_ltops_t;
 
+/* Get the names of input topologies. Return # of total topology. */
+int MulTop_Global_GetInputFileName(char **fns[], const char *opt, int nfile, const t_filenm fnm[], t_commrec *cr);
+
 /* Initializaion. Skip gtops->gr for non-master nodes. */ 
 mt_gtops_t *MulTop_Global_Init(int ntop, real Tref, real Tmax, real Wmax, gmx_bool bMASTER);
 

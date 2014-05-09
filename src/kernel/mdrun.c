@@ -405,6 +405,7 @@ int cmain(int argc, char *argv[])
         { efTOP, "-mp",     "membed",   ffOPTRD },
         { efNDX, "-mn",     "membed",   ffOPTRD },
 			  { efMDP, "-at",     NULL,       ffOPTRD },  /* at.cfg, only for do_md */
+			  { efMDP, "-addtop", NULL,       ffOPTRD },  /* add additional topology */
     };
 #define NFILE asize(fnm)
 
@@ -708,7 +709,7 @@ int cmain(int argc, char *argv[])
     Flags = Flags | (sim_part > 1    ? MD_STARTFROMCPT : 0);
     Flags = Flags | (bResetCountersHalfWay ? MD_RESETCOUNTERSHALFWAY : 0);
     Flags = Flags | ((opt2bSet("-at", NFILE, fnm)) ? MD_ADAPTIVETEMPERING : 0);
-    Flags = Flags | ((opt2bSet("-multop", NFILE, fnm)) ? MD_MULTOP : 0);
+    Flags = Flags | ((opt2bSet("-addtop", NFILE, fnm)) ? MD_MULTOP : 0);
 
     /* We postpone opening the log file if we are appending, so we can
        first truncate the old log file and append to the correct position
