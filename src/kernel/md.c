@@ -1272,6 +1272,8 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 					}
 				}
 
+				gmx_localtop_t *top_final;
+
         if (shellfc)
         {
             /* Now is the time to relax the shells */
@@ -1291,16 +1293,15 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                 nconverged++;
             }
         }
-        else if(bAdaptTempering)
+				else if(bMulTop)
 				{
-					AdaptTemperingCalcForce(fplog, cr, ir, step, nrnb, wcycle, top, top_global,
-							                    groups, state->box, state->x, &state->hist, f,
-																  force_vir, mdatoms, enerd, fcd, state->lambda,
-																	graph, fr, vsite, mu_tot, t, outf->fp_field,
-																	ed, bBornRadii, (bNS ? GMX_FORCE_NS : 0) | force_flags,
-																	AdaptTempering, bFirstStep);
-
-					bAdaptTemperingUpdated = 0;
+          do_force(fplog, cr, ir, step, nrnb, wcycle,
+									 MulTop_Local_GetFinalTopology(MulTopLocal), 
+									 top_global, groups, state->box, state->x, &state->hist,
+                   f, force_vir, mdatoms, enerd, fcd,
+                   state->lambda, graph, fr, vsite, mu_tot, t, 
+									 outf->fp_field, ed, bBornRadii,
+                   (bNS ? GMX_FORCE_NS : 0) | force_flags);
 				}
 				else
         {
@@ -1317,6 +1318,14 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                      (bNS ? GMX_FORCE_NS : 0) | force_flags);
         }
 				
+				/* force rescaling scheme if adapt tempering */
+				if(bAdaptTempering)
+				{
+					AdaptTemperingRescaleForce(AdaptTempering, mdatoms, f);
+
+					bAdaptTemperingUpdated = 0;
+				}
+
 				/* After doing force, add the additional energy terms. */
 				if(bMulTop)
 				{

@@ -777,6 +777,7 @@ void sum_epot(t_grpopts *opts, gmx_grppairener_t *grpp, real *epot)
     epot[F_COUL_SR]  = sum_v(grpp->nener, grpp->ener[egCOULSR]);
     epot[F_LJ]       = sum_v(grpp->nener, grpp->ener[egLJSR]);
     epot[F_LJ14]     = sum_v(grpp->nener, grpp->ener[egLJ14]);
+    epot[F_VDW14]     = sum_v(grpp->nener, grpp->ener[egVDW14]);
     epot[F_COUL14]   = sum_v(grpp->nener, grpp->ener[egCOUL14]);
     epot[F_COUL_LR]  = sum_v(grpp->nener, grpp->ener[egCOULLR]);
     epot[F_LJ_LR]    = sum_v(grpp->nener, grpp->ener[egLJLR]);

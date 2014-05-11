@@ -995,6 +995,9 @@ mt_gtops_t *MulTop_Global_Init(int ntop, real Tref, real Tmax, real Wmax, gmx_bo
 	snew(gtops, 1);
 
 	gtops->ntop = ntop;
+	gtops->Tref = Tref;
+	gtops->Tmax = Tmax;
+	gtops->Wmax = Wmax;
 
 	snew(gtops->mtops, ntop);
 	for(i=1; i<ntop; i++)
@@ -1611,7 +1614,11 @@ void MulTop_Local_UpdateFinalTopology(mt_ltops_t *ltops, real *pot, real T)
 	real parameter;
 	
 	if(!count)
-		parameter = ltops->Wmax / (ltops->Tmax - ltops->Tref);
+	{
+		if(ltops->Tmax != ltops->Tref)
+			parameter = ltops->Wmax / (ltops->Tmax - ltops->Tref);
+		else parameter = ltops->Wmax;
+	}
 
 	MulTop_Local_UpdateFinalTopologyBasic(ltops);
 
@@ -1619,7 +1626,11 @@ void MulTop_Local_UpdateFinalTopology(mt_ltops_t *ltops, real *pot, real T)
 		pot[i] = 0;
 
 	weight[0] = 1;
-	weight[1] = parameter * (T - ltops->Tref);
+	if(T < ltops->Tref)
+		weight[1] = 0;
+	else if(ltops->Tmax != ltops->Tref)
+		weight[1] = parameter * (T - ltops->Tref);
+	else weight[1] = parameter;
 
 	for(j=0; j<tops[0]->idef.ntypes; j++)
 	{
@@ -1629,4 +1640,9 @@ void MulTop_Local_UpdateFinalTopology(mt_ltops_t *ltops, real *pot, real T)
 	}
 
 	count ++;
+}
+
+gmx_localtop_t *MulTop_Local_GetFinalTopology(mt_ltops_t *ltops)
+{
+	return ltops->top_final;
 }

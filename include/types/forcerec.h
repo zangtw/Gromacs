@@ -138,7 +138,7 @@ enum {
 
 enum {
     egCOULSR, egLJSR, egBHAMSR, egCOULLR, egLJLR, egBHAMLR,
-    egCOUL14, egLJ14, egGB, egNR
+    egCOUL14, egLJ14, egVDW14,  egGB, egNR
 };
 
 typedef struct {

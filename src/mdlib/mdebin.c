@@ -157,6 +157,7 @@ t_mdebin *init_mdebin(ener_file_t       fp_ene,
 
     bBHAM = (mtop->ffparams.functype[0] == F_BHAM);
     b14   = (gmx_mtop_ftype_count(mtop, F_LJ14) > 0 ||
+             gmx_mtop_ftype_count(mtop, F_VDW14) > 0 || 
              gmx_mtop_ftype_count(mtop, F_LJC14_Q) > 0);
 
     ncon           = gmx_mtop_ftype_count(mtop, F_CONSTR);
@@ -232,6 +233,10 @@ t_mdebin *init_mdebin(ener_file_t       fp_ene,
         {
             md->bEner[i] = b14;
         }
+				else if (i == F_VDW14)
+				{
+						md->bEner[i] = b14;
+				}
         else if (i == F_COUL14)
         {
             md->bEner[i] = b14;

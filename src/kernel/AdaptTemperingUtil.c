@@ -1206,32 +1206,18 @@ void AdaptTemperingPrintExchangeStatistics(at_t * at, FILE *fplog, at_repl_ex_t 
     print_transition_matrix(fplog, "", re->nrepl, re->nmoves, re->nattempt);
 }
 
-void AdaptTemperingCalcForce(FILE *fplog, t_commrec *cr, 
-		t_inputrec *inputrec, gmx_large_int_t step, t_nrnb *nrnb, 
-		gmx_wallcycle_t wcycle, gmx_localtop_t *top, gmx_mtop_t *mtop,
-		gmx_groups_t *groups, matrix box, rvec x[], history_t *hist, rvec f[], 
-		tensor vir_force, t_mdatoms *mdatoms, gmx_enerdata_t *enerd, t_fcdata *fcd, 
-		real *lambda, t_graph *graph, t_forcerec *fr, gmx_vsite_t *vsite, 
-		rvec mu_tot, double t, FILE *field, gmx_edsam_t ed, gmx_bool bBornRadii,
-		int flags, at_t *at, gmx_bool bFirstStep)
+void AdaptTemperingRescaleForce(at_t *at, t_mdatoms *mdatoms, rvec f[])
 {
-	do_force(fplog, cr, inputrec, step, nrnb, wcycle, top, mtop, groups, box, x, hist,
-           f, vir_force, mdatoms, enerd, fcd, lambda, graph, fr, vsite, mu_tot, t, 
-	  			 field, ed, bBornRadii, flags);
-
-	/* Rescale the forces */
-  if (at != NULL) {
-		int i;
-		real scale;
-		
-		scale = AdaptTempering_ForceScaleFactor(at);
-    
-    /* scale the force */
-    for (i = mdatoms->start; i < mdatoms->start + mdatoms->homenr; i++) {
-      f[i][0] *= scale; 
-      f[i][1] *= scale; 
-      f[i][2] *= scale; 
-    }
+	int i;
+	real scale;
+	
+	scale = AdaptTempering_ForceScaleFactor(at);
+  
+  /* scale the force */
+  for (i = mdatoms->start; i < mdatoms->start + mdatoms->homenr; i++) {
+    f[i][0] *= scale; 
+    f[i][1] *= scale; 
+    f[i][2] *= scale; 
   }
 }
 

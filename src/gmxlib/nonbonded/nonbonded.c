@@ -535,10 +535,13 @@ do_nonbonded_listed(int ftype, int nbonds,
     switch (ftype)
     {
         case F_LJ14:
-				case F_VDW14:
         case F_LJC14_Q:
             energygrp_elec = grppener->ener[egCOUL14];
             energygrp_vdw  = grppener->ener[egLJ14];
+            break;
+				case F_VDW14:
+            energygrp_elec = grppener->ener[egCOUL14]; /* although this term will always be zero */
+            energygrp_vdw  = grppener->ener[egVDW14];
             break;
         case F_LJC_PAIRS_NB:
             energygrp_elec = grppener->ener[egCOULSR];
@@ -615,6 +618,7 @@ do_nonbonded_listed(int ftype, int nbonds,
                 qq               = 0;
                 c6               = iparams[itype].ljcnb.c6;
                 c12              = iparams[itype].ljcnb.c12;
+								break;
             default:
                 /* Cannot happen since we called gmx_fatal() above in this case */
                 qq = c6 = c12 = 0; /* Keep compiler happy */
