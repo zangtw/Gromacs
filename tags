@@ -15052,15 +15052,13 @@ mstack	src/gmxlib/selection/scanner_internal.h	/^    struct gmx_ana_selmethod_t 
 mstack_alloc	src/gmxlib/selection/scanner_internal.h	/^    int                                  mstack_alloc;$/;"	m	struct:gmx_sel_lexer_t
 mt	src/gmxlib/gmx_random.c	/^    unsigned int  mt[RNG_N];$/;"	m	struct:gmx_rng	file:
 mt_	src/kernel/zcom1.h	/^uint32_t mt_[MT_N]; \/* array for the mt state vector *\/$/;"	v
-mt_debug_p_force	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_force(rvec *f, rvec *f_pme, t_commrec *cr, char *label, t_mdatoms *md, bool bMT)$/;"	f
-mt_debug_p_mdatoms	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_mdatoms(t_commrec *cr, t_mdatoms *md, bool bMT)$/;"	f
+mt_debug_p_force	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_force(rvec *f, rvec *f_pme, t_commrec *cr, char *label, t_mdatoms *md, gmx_bool bMT)$/;"	f
+mt_debug_p_mdatoms	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_mdatoms(t_commrec *cr, t_mdatoms *md, gmx_bool bMT)$/;"	f
 mt_debug_p_mtop	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_mtop(gmx_mtop_t *mtop, t_commrec *cr, int mtopid)$/;"	f
-mt_debug_p_nblist	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_nblist(t_commrec *cr, t_forcerec *fr, int nalloc, mt_localrec *lr, rvec *x)$/;"	f
-mt_debug_p_nbpara	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_nbpara(t_commrec *cr, t_forcerec *fr, bool bMT)$/;"	f
 mt_debug_p_top	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_top(gmx_localtop_t *top, t_blocka *excls, t_commrec *cr, int ltopid)$/;"	f
 mt_debug_p_vec_after_update	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_vec_after_update(rvec *x, rvec *f, t_commrec *cr, t_mdatoms *md, $/;"	f
 mt_debug_p_vec_before_update	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_vec_before_update(rvec *x, rvec *f, t_commrec *cr, t_mdatoms *md, $/;"	f
-mt_debug_p_x	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_x(t_commrec *cr, rvec *x, int nr, bool bMT)$/;"	f
+mt_debug_p_x	src/kernel/MultiTopoDebug.c	/^void mt_debug_p_x(t_commrec *cr, rvec *x, int nr, gmx_bool bMT)$/;"	f
 mt_gtops_t	src/kernel/MultiTopo.h	/^typedef struct MulTop_GlobalTops_t mt_gtops_t;$/;"	t	typeref:struct:MulTop_GlobalTops_t
 mt_ltops_t	src/kernel/MultiTopo.h	/^typedef struct MulTop_LocalTops_t  mt_ltops_t;$/;"	t	typeref:struct:MulTop_LocalTops_t
 mti	src/gmxlib/gmx_random.c	/^    int           mti;$/;"	m	struct:gmx_rng	file:

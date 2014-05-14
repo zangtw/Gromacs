@@ -94,7 +94,6 @@
 #include "nbnxn_cuda_data_mgmt.h"
 #include "AdaptTemperingUtil.h"
 #include "MultiTopo.h"
-#include "MultiTopoDebug.h"
 
 #ifdef GMX_LIB_MPI
 #include <mpi.h>
@@ -1272,11 +1271,6 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 						}
 					}
 				}
-
-				if(bMulTop)
-					mt_debug_p_top(MulTop_Local_GetFinalTopology(MulTopLocal), NULL, cr, 1); 
-				else 
-					mt_debug_p_top(top, NULL, cr, 0); 
 
         if (shellfc)
         {
