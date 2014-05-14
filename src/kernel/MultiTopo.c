@@ -363,7 +363,7 @@ static void iparams_cal(t_iparams *tar, t_iparams *src0, t_iparams *src1,
 
   		tar->pdihs.phiB = tar->pdihs.phiA;
   		tar->pdihs.cpB = tar->pdihs.cpA;
-  		tar->pdihs.mult = max(src0->pdihs.mult, src1->pdihs.mult); //Here either they are equal to each other, or one of them is zero (according to the logics in redo_mtops)
+  		tar->pdihs.mult = max(src0->pdihs.mult, src1->pdihs.mult); //Here either they are equal to each other, or one of them is zero (according to the logics in refresh_mtops)
 			pot[ftype] += src0->pdihs.cpA * w[0] + src1->pdihs.cpA * w[1] - tar->pdihs.cpA;
   	}
   	break;
@@ -600,7 +600,7 @@ static void MulTop_Global_SaveData(mt_gtops_t *gtops, int t, FILE *fp)
 
 	/* write GREC_FA */
 	for(i=0; i<natoms; i++)
-		fprintf(fp, " %d", GREC_FA[t][i]);
+		fprintf(fp, " %d", GREC_FA[t][i] + 1); /* '+1' here is to make index corresponding to *.gro */
 
 	/* write GREC_FB after last topology is processed */
 	if(t == gtops->ntop - 1)
@@ -1046,7 +1046,7 @@ void MulTop_Global_LoadData(mt_gtops_t *gtops)
 {
 	int natoms;
 	int ntop = gtops->ntop;
-	int i,j,k,t;
+	int i,j,k,t,index;
 	char header;
 	int header_index, header_natoms;
 	MulTop_GlobalRecords *gr = gtops->gr;
@@ -1081,7 +1081,8 @@ void MulTop_Global_LoadData(mt_gtops_t *gtops)
 			if(feof(fp))
 				gmx_fatal(FARGS,"Error reading record files: number of atoms in file is not consistent with one in topology %d which is %d.",t, natoms);
 		
-			fscanf(fp, "%d", GREC_FA[t]+i);
+			fscanf(fp, "%d", &index); 
+			*(GREC_FA[t]+i) = index - 1; /* index is the one in *.gro so we need to reduce it by one. */
 		}
 		
 		/* Read GREC_FB information after the last topology is processed */
@@ -1423,9 +1424,9 @@ void MulTop_Global_RefreshForceFieldParameters(mt_gtops_t *gtops)
 		for(n=0; n<ntop; n++)
 		{
 			DREC_Pcos[i-DREC_Pind][n] = gtops->mtops[n]->ffparams.iparams[i].pdihs.cpA
-					                             * cos(DEG2RAD * gtops->mtops[n]->ffparams.iparams[i].pdihs.mult * gtops->mtops[n]->ffparams.iparams[i].pdihs.phiA);
+					                             * cos(DEG2RAD * gtops->mtops[n]->ffparams.iparams[i].pdihs.phiA);
 			DREC_Psin[i-DREC_Pind][n] = gtops->mtops[n]->ffparams.iparams[i].pdihs.cpA
-					                             * sin(DEG2RAD * gtops->mtops[n]->ffparams.iparams[i].pdihs.mult * gtops->mtops[n]->ffparams.iparams[i].pdihs.phiA);
+					                             * sin(DEG2RAD * gtops->mtops[n]->ffparams.iparams[i].pdihs.phiA);
 		}
 
 		i++;
@@ -1447,9 +1448,9 @@ void MulTop_Global_RefreshForceFieldParameters(mt_gtops_t *gtops)
 		for(n=0; n<ntop; n++)
 		{
 			DREC_PIcos[i-DREC_PIind][n] = gtops->mtops[n]->ffparams.iparams[i].pdihs.cpA
-					                             * cos(DEG2RAD * gtops->mtops[n]->ffparams.iparams[i].pdihs.mult * gtops->mtops[n]->ffparams.iparams[i].pdihs.phiA);
+					                             * cos(DEG2RAD * gtops->mtops[n]->ffparams.iparams[i].pdihs.phiA);
 			DREC_PIsin[i-DREC_PIind][n] = gtops->mtops[n]->ffparams.iparams[i].pdihs.cpA
-					                             * sin(DEG2RAD * gtops->mtops[n]->ffparams.iparams[i].pdihs.mult * gtops->mtops[n]->ffparams.iparams[i].pdihs.phiA);
+					                             * sin(DEG2RAD * gtops->mtops[n]->ffparams.iparams[i].pdihs.phiA);
 		}
 
 		i++;

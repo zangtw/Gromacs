@@ -64,6 +64,9 @@
 #include "gmx_simd_macros.h"
 #endif
 
+/* debug */
+#define DEBUG
+
 /* Find a better place for this? */
 const int cmap_coeff_matrix[] = {
     1, 0, -3,  2, 0, 0,  0,  0, -3,  0,  9, -6,  2,  0, -6,  4,
@@ -1916,8 +1919,8 @@ real pdihs(int nbonds,
                    f, fshift, pbc, g, x, t1, t2, t3); /* 112		*/
 
 #ifdef DEBUG
-        fprintf(debug, "pdih: (%d,%d,%d,%d) phi=%g\n",
-                ai, aj, ak, al, phi);
+        fprintf(debug, "pdih: (%d,%d,%d,%d) phi=%g \t v=%g\n",
+                ai, aj, ak, al, phi, vpd);
 #endif
     } /* 223 TOTAL  */
 
@@ -2188,8 +2191,8 @@ real idihs(int nbonds,
 #ifdef DEBUG
         if (debug)
         {
-            fprintf(debug, "idih: (%d,%d,%d,%d) phi=%g\n",
-                    ai, aj, ak, al, phi);
+            fprintf(debug, "idih: (%d,%d,%d,%d) phi=%g \t v=%g\n",
+                    ai, aj, ak, al, phi, 0.5*kk*dp2);
         }
 #endif
     }
