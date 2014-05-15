@@ -1612,7 +1612,7 @@ void MulTop_Local_UpdateFinalTopology(mt_ltops_t *ltops, real *pot, real T)
 	int i, j, k, ftype;
 	real weight[2];
 	static int count = 0;
-	real parameter;
+	static real parameter;
 	
 	if(!count)
 	{
@@ -1631,7 +1631,9 @@ void MulTop_Local_UpdateFinalTopology(mt_ltops_t *ltops, real *pot, real T)
 		weight[1] = 0;
 	else if(ltops->Tmax != ltops->Tref)
 		weight[1] = parameter * (T - ltops->Tref);
-	else weight[1] = parameter;
+	else weight[1] = parameter;	
+	if(weight[1] < 1e-6)
+		weight[1] = 0;
 
 	for(j=0; j<tops[0]->idef.ntypes; j++)
 	{

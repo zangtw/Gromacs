@@ -64,9 +64,6 @@
 #include "gmx_simd_macros.h"
 #endif
 
-/* debug */
-#define DEBUG
-
 /* Find a better place for this? */
 const int cmap_coeff_matrix[] = {
     1, 0, -3,  2, 0, 0,  0,  0, -3,  0,  9, -6,  2,  0, -6,  4,

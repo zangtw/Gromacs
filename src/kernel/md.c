@@ -278,7 +278,7 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 			
 			MulTopNumber = MulTop_Global_GetInputFileName(&MulTopFileNames, "-addtop", nfile, fnm, cr);
 
-			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 300, 300, 0.75, MASTER(cr));
+			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 350, 501.16269, 12, MASTER(cr));
 			MulTop_Global_SetReferenceTopology(MulTopGlobal, top_global);
 
 			snew(states, MulTopNumber);
@@ -1273,10 +1273,8 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 					}
 				}
 
-				if(bMulTop)
+				if(bMulTop && bNS)
 					mt_debug_p_top(MulTop_Local_GetFinalTopology(MulTopLocal), NULL, cr, 1); 
-				else 
-					mt_debug_p_top(top, NULL, cr, 0); 
 
         if (shellfc)
         {
