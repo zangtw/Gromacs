@@ -50,8 +50,11 @@ void MulTop_Local_UpdateRecords(mt_ltops_t *ltops, gmx_domdec_t *dd);
 /* Init the final topology */
 void MulTop_Local_InitFinalTopology(mt_ltops_t *ltops);
 
-/* Update the final topology (firststep or after a termperature change). */
-void MulTop_Local_UpdateFinalTopology(mt_ltops_t *ltops, real *pot, real T);
+/* Update the final topology (every step) */
+void MulTop_Local_UpdateFinalTopologyBasic(mt_ltops_t *ltops);
+
+/* Update the final topology force parameters (firststep or after a termperature change). */
+void MulTop_Local_UpdateFinalTopologyParameters(mt_ltops_t *ltops, real *pot, real T);
 
 /* Return the final topology (for force calculation). */
 gmx_localtop_t *MulTop_Local_GetFinalTopology(mt_ltops_t *ltops);

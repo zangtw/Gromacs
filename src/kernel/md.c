@@ -1215,20 +1215,21 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 				/* Before doing force, update the final topology */
 				if(bMulTop)
 				{
-					/* always update at the first step */
 					if(bFirstStep)
 					{
 						MulTop_Local_InitFinalTopology(MulTopLocal);
-
-						MulTop_Local_UpdateFinalTopology(MulTopLocal, MulTopAdditionalEnergy, ir->opts.ref_t[0]);
+						MulTop_Local_UpdateFinalTopologyBasic(MulTopLocal);
+						MulTop_Local_UpdateFinalTopologyParameters(MulTopLocal, MulTopAdditionalEnergy, ir->opts.ref_t[0]);
 					}
+					else
+						MulTop_Local_UpdateFinalTopologyBasic(MulTopLocal);
 					
-					/* if tempering is applied, update after every temperature move. */
+					/* if tempering is applied, update parameters after every temperature move. */
 					if(bAdaptTempering)
 					{
-						if(bAdaptTemperingUpdated || bFirstStep)
+						if(bAdaptTemperingUpdated || !bFirstStep)
 						{
-							MulTop_Local_UpdateFinalTopology(MulTopLocal, MulTopAdditionalEnergy, AdaptTemperingCurrentTemperature(AdaptTempering));
+							MulTop_Local_UpdateFinalTopologyParameters(MulTopLocal, MulTopAdditionalEnergy, AdaptTemperingCurrentTemperature(AdaptTempering));
 						}
 					}
 				}

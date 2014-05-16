@@ -1130,6 +1130,44 @@ int mdrunner(gmx_hw_opt_t *hw_opt,
 
     /* now make sure the state is initialized and propagated */
     set_state_entries(state, inputrec, cr->nnodes);
+		
+		/* Initialize the multiple topologies. */
+		if(bMulTop)
+		{
+			char **MulTopFileNames;
+			t_state **states;
+			
+			MulTopNumber = MulTop_Global_GetInputFileName(&MulTopFileNames, "-addtop", nfile, fnm, cr);
+
+			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 300, 300, 0.75, MASTER(cr));
+			MulTop_Global_SetReferenceTopology(MulTopGlobal, mtop);
+
+			snew(states, MulTopNumber);
+			states[0] = state; for(i=1; i<MulTopNumber; i++)
+				snew(states[i],1);
+			MulTop_Global_GetOtherTopologies(MulTopGlobal, MulTopFileNames, cr, states);
+			
+			if(MASTER(cr))
+			{
+				if(Flags & MD_STARTFROMCPT)
+					MulTop_Global_LoadData(MulTopGlobal);
+				else
+					MulTop_Global_CalcData(MulTopGlobal, states, state);
+
+				MulTop_Global_RefreshForceFieldParameters(MulTopGlobal);
+			}
+
+			/* just for debug */
+			/*MulTopGlobal->Tref = 450;*/
+			/*MulTopGlobal->Tmax = 500;*/
+			/*MulTopGlobal->Wmax = 1;*/
+
+			MulTop_Global_Bcast(MulTopGlobal, cr);
+
+			for(i=1; i<MulTopNumber; i++)
+				sfree(states[i]);
+			sfree(states);
+		}
 
     /* A parallel command line option consistency check that we can
        only do after any threads have started. */
@@ -1297,45 +1335,6 @@ int mdrunner(gmx_hw_opt_t *hw_opt,
         ed = ed_open(mtop->natoms, &state->edsamstate, nfile, fnm, Flags, oenv, cr);
     }
 		
-		/* Initialize the multiple topologies: must be done before initializing the domain decomposition. */
-		if(bMulTop)
-		{
-			char **MulTopFileNames;
-			t_state **states;
-			
-			MulTopNumber = MulTop_Global_GetInputFileName(&MulTopFileNames, "-addtop", nfile, fnm, cr);
-
-			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 300, 300, 0.75, MASTER(cr));
-			MulTop_Global_SetReferenceTopology(MulTopGlobal, mtop);
-
-			snew(states, MulTopNumber);
-			states[0] = state;
-			for(i=1; i<MulTopNumber; i++)
-				snew(states[i],1);
-			MulTop_Global_GetOtherTopologies(MulTopGlobal, MulTopFileNames, cr, states);
-			
-			if(MASTER(cr))
-			{
-				if(Flags & MD_STARTFROMCPT)
-					MulTop_Global_LoadData(MulTopGlobal);
-				else
-					MulTop_Global_CalcData(MulTopGlobal, states, state);
-
-				MulTop_Global_RefreshForceFieldParameters(MulTopGlobal);
-			}
-
-			/* just for debug */
-			/*MulTopGlobal->Tref = 450;*/
-			/*MulTopGlobal->Tmax = 500;*/
-			/*MulTopGlobal->Wmax = 1;*/
-
-			MulTop_Global_Bcast(MulTopGlobal, cr);
-
-			for(i=1; i<MulTopNumber; i++)
-				sfree(states[i]);
-			sfree(states);
-		}
-
     if (PAR(cr) && !((Flags & MD_PARTDEC) ||
                      EI_TPI(inputrec->eI) ||
                      inputrec->eI == eiNM))

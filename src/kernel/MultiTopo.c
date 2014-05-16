@@ -925,30 +925,6 @@ static void MulTop_Local_UpdateRecordsSingleProcessor(MulTop_LocalRecords *lr, i
 /*LREC_G2L[LREC_L2G[i]] = i;*/
 /*}*/
 
-static void MulTop_Local_UpdateFinalTopologyBasic(mt_ltops_t *ltops)
-{	
-	int i;
-	gmx_localtop_t *top_final = ltops->top_final;
-	gmx_localtop_t **tops = ltops->tops;
-
-	for(i=0; i<F_NRE; i++)
-	{
-		top_final->idef.il[i].nr = tops[0]->idef.il[i].nr;
-		top_final->idef.il[i].nr_nonperturbed= tops[0]->idef.il[i].nr_nonperturbed;
-		top_final->idef.il[i].nalloc = tops[0]->idef.il[i].nalloc;
-		top_final->idef.il[i].iatoms = tops[0]->idef.il[i].iatoms;
-	}
-	top_final->cgs.nr = tops[0]->cgs.nr;
-	top_final->cgs.nalloc_index = tops[0]->cgs.nalloc_index;
-	top_final->cgs.index = tops[0]->cgs.index;
-	top_final->excls.nr = tops[0]->excls.nr;
-	top_final->excls.nra = tops[0]->excls.nra;
-	top_final->excls.nalloc_a = tops[0]->excls.nalloc_a;
-	top_final->excls.nalloc_index = tops[0]->excls.nalloc_index;
-	top_final->excls.index = tops[0]->excls.index;
-	top_final->excls.a = tops[0]->excls.a;
-}
-
 /*################################################
  * non-static functions */
 
@@ -1603,9 +1579,33 @@ void MulTop_Local_InitFinalTopology(mt_ltops_t *ltops)
 	top_final->atomtypes.S_hct = tops[0]->atomtypes.S_hct;
 	top_final->atomtypes.atomnumber = tops[0]->atomtypes.atomnumber;
 }
+
+void MulTop_Local_UpdateFinalTopologyBasic(mt_ltops_t *ltops)
+{	
+	int i;
+	gmx_localtop_t *top_final = ltops->top_final;
+	gmx_localtop_t **tops = ltops->tops;
+
+	for(i=0; i<F_NRE; i++)
+	{
+		top_final->idef.il[i].nr = tops[0]->idef.il[i].nr;
+		top_final->idef.il[i].nr_nonperturbed= tops[0]->idef.il[i].nr_nonperturbed;
+		top_final->idef.il[i].nalloc = tops[0]->idef.il[i].nalloc;
+		top_final->idef.il[i].iatoms = tops[0]->idef.il[i].iatoms;
+	}
+	top_final->cgs.nr = tops[0]->cgs.nr;
+	top_final->cgs.nalloc_index = tops[0]->cgs.nalloc_index;
+	top_final->cgs.index = tops[0]->cgs.index;
+	top_final->excls.nr = tops[0]->excls.nr;
+	top_final->excls.nra = tops[0]->excls.nra;
+	top_final->excls.nalloc_a = tops[0]->excls.nalloc_a;
+	top_final->excls.nalloc_index = tops[0]->excls.nalloc_index;
+	top_final->excls.index = tops[0]->excls.index;
+	top_final->excls.a = tops[0]->excls.a;
+}
 	
 /* Currently this function only support two topologies... */
-void MulTop_Local_UpdateFinalTopology(mt_ltops_t *ltops, real *pot, real T)
+void MulTop_Local_UpdateFinalTopologyParameters(mt_ltops_t *ltops, real *pot, real T)
 {
 	gmx_localtop_t *top_final = ltops->top_final;
 	gmx_localtop_t **tops = ltops->tops;
@@ -1620,8 +1620,6 @@ void MulTop_Local_UpdateFinalTopology(mt_ltops_t *ltops, real *pot, real T)
 			parameter = ltops->Wmax / (ltops->Tmax - ltops->Tref);
 		else parameter = ltops->Wmax;
 	}
-
-	MulTop_Local_UpdateFinalTopologyBasic(ltops);
 
 	for(i=0; i<F_EPOT; i++)
 		pot[i] = 0;
