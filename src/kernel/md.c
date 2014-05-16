@@ -139,6 +139,8 @@ static void reset_all_counters(FILE *fplog, t_commrec *cr,
     print_date_and_time(fplog, cr->nodeid, "Restarted time", runtime);
 }
 
+extern mt_gtops_t *MulTopGlobal; 
+
 double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
              const output_env_t oenv, gmx_bool bVerbose, gmx_bool bCompact,
              int nstglobalcomm,
@@ -253,8 +255,6 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 		
 		/* Below are variables for multiple topologies */
 		gmx_bool bMulTop = Flags & MD_MULTOP;
-		int MulTopNumber;
-		mt_gtops_t *MulTopGlobal;  
 		mt_ltops_t *MulTopLocal;
 		real MulTopAdditionalEnergy[F_EPOT];
 
@@ -267,45 +267,6 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
       
 			if(MASTER(cr))
 				fprintf(stderr, "\nNOTE: Adaptive tempering is turned on. For multiple copies, parameter exchange scheme will be used instead of normal temperature exchange scheme by default. (See ref.)\n");
-		}
-		
-		/* Initialize the multiple topologies */
-		if(bMulTop)
-		{
-			char **MulTopFileNames;
-			t_state **states;
-			
-			MulTopNumber = MulTop_Global_GetInputFileName(&MulTopFileNames, "-addtop", nfile, fnm, cr);
-
-			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 300, 300, 0.75, MASTER(cr));
-			MulTop_Global_SetReferenceTopology(MulTopGlobal, top_global);
-
-			snew(states, MulTopNumber);
-			states[0] = state_global;
-			for(i=1; i<MulTopNumber; i++)
-				snew(states[i],1);
-			MulTop_Global_GetOtherTopologies(MulTopGlobal, MulTopFileNames, cr, states);
-			
-			if(MASTER(cr))
-			{
-				if(Flags & MD_STARTFROMCPT)
-					MulTop_Global_LoadData(MulTopGlobal);
-				else
-					MulTop_Global_CalcData(MulTopGlobal, states, state_global);
-
-				MulTop_Global_RefreshForceFieldParameters(MulTopGlobal);
-			}
-
-			/* just for debug */
-			/*MulTopGlobal->Tref = 450;*/
-			/*MulTopGlobal->Tmax = 500;*/
-			/*MulTopGlobal->Wmax = 1;*/
-
-			MulTop_Global_Bcast(MulTopGlobal, cr);
-
-			for(i=1; i<MulTopNumber; i++)
-				sfree(states[i]);
-			sfree(states);
 		}
 
     /* Check for special mdrun options */
