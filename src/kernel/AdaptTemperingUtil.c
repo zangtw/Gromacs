@@ -913,7 +913,7 @@ gmx_bool AdaptTemperingDoTemperingThisStep(at_t *at, gmx_large_int_t step,
 
 gmx_bool AdaptTemperingUpdate(at_t *at, gmx_large_int_t step, 
 		gmx_bool bTempering, gmx_bool bFirstStep, gmx_bool bLastStep, 
-		gmx_bool bTotE, gmx_bool bXTC, t_commrec *cr, gmx_enerdata_t *enerd)
+		gmx_bool bTotE, gmx_bool bXTC, gmx_bool bCPT, t_commrec *cr, gmx_enerdata_t *enerd)
 {
 	if(!bTempering)
 		return 0;
@@ -925,7 +925,7 @@ gmx_bool AdaptTemperingUpdate(at_t *at, gmx_large_int_t step,
 
   /* change temperature, and regularly write output files */
   if (SIMMASTER(cr)) {
-    if (AdaptTempering_Langevin(at, (llong_t)step, bFirstStep, bLastStep, bXTC))
+    if (AdaptTempering_Langevin(at, (llong_t)step, bFirstStep, bLastStep, bXTC, bCPT))
 			gmx_fatal(FARGS,"node %d, step: " llong_pfmt ", error during moving master\n", cr->nodeid, step);
   }
 	if (SIMMASTER(cr))

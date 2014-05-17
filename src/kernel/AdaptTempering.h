@@ -109,7 +109,7 @@ void AdaptTempering_OpenLog(at_t *at);
 int AdaptTempering_DumpToFile(at_t *at, const char *fname, int arrmax);
 
 /* Integrate Langevin equation and update the temperature. */
-int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, bool btr);
+int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, bool btr, bool bflush);
 
 /* Update the current temperature according to the multiple bin data. */
 void AdaptTempering_UpdateTemperature(at_t *at);

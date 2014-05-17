@@ -1612,7 +1612,7 @@ void MulTop_Local_UpdateFinalTopologyParameters(mt_ltops_t *ltops, real *pot, re
 	int i, j, k, ftype;
 	real weight[2];
 	static int count = 0;
-	real parameter;
+	static real parameter;
 	
 	if(!count)
 	{
