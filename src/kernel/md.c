@@ -258,7 +258,6 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 		mt_ltops_t *MulTopLocal;
 		real MulTopLocalEnergy, MulTopGlobalEnergy;
 		real MulTopAdditionalEnergy[F_EPOT];
-		FILE *GE = fopen("GE","w");
 
 		/* Initialize the adaptive tempering */
 		if(bAdaptTempering)
@@ -1296,9 +1295,6 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 						{
 							MulTopLocalEnergy = MulTop_Local_OnlyCalcAdditionalEnergy(MulTopLocal, fr, state, enerd, AdaptTemperingCurrentTemperature(AdaptTempering));
 							MulTopGlobalEnergy = MulTop_Global_GetEnergy(MulTopLocalEnergy, cr);
-							fprintf(GE,"%lg\t%lg\n",0.002*step, MulTopGlobalEnergy);
-
-							fflush(GE);
 						}
 					
 					if(MASTER(cr))
@@ -2406,7 +2402,5 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 
     runtime->nsteps_done = step_rel;
 
-		fclose(GE);
-			
     return 0;
 }
