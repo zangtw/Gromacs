@@ -20,8 +20,9 @@ gmx_bool AdaptTemperingDoTemperingThisStep(at_t *at, gmx_large_int_t step,
 		gmx_bool bFirstStep, gmx_bool bLastStep, gmx_bool bNS, t_commrec *cr);
 
 gmx_bool AdaptTemperingUpdate(at_t *at, gmx_large_int_t step, 
-		gmx_bool bTempering, gmx_bool bFirstStep, gmx_bool bLastStep, 
-		gmx_bool bTotE, gmx_bool bXTC, t_commrec *cr, gmx_enerdata_t *enerd);
+		gmx_bool bFirstStep, gmx_bool bLastStep, gmx_bool bTotE, 
+		gmx_bool bXTC, gmx_bool bCPT, t_commrec *cr, 
+		gmx_enerdata_t *enerd, gmx_bool bMulTop, real extraE);
 			
 at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog, 
 		gmx_multisim_t *ms, t_state *state, t_inputrec *ir, int nst, int seed);

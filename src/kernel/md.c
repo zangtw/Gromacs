@@ -94,7 +94,6 @@
 #include "nbnxn_cuda_data_mgmt.h"
 #include "AdaptTemperingUtil.h"
 #include "MultiTopo.h"
-#include "MultiTopoDebug.h"
 
 #ifdef GMX_LIB_MPI
 #include <mpi.h>
@@ -139,6 +138,8 @@ static void reset_all_counters(FILE *fplog, t_commrec *cr,
     runtime_start(runtime);
     print_date_and_time(fplog, cr->nodeid, "Restarted time", runtime);
 }
+
+extern mt_gtops_t *MulTopGlobal; 
 
 double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
              const output_env_t oenv, gmx_bool bVerbose, gmx_bool bCompact,
@@ -254,10 +255,10 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 		
 		/* Below are variables for multiple topologies */
 		gmx_bool bMulTop = Flags & MD_MULTOP;
-		int MulTopNumber;
-		mt_gtops_t *MulTopGlobal;  
 		mt_ltops_t *MulTopLocal;
+		real MulTopLocalEnergy, MulTopGlobalEnergy;
 		real MulTopAdditionalEnergy[F_EPOT];
+		FILE *GE = fopen("GE","w");
 
 		/* Initialize the adaptive tempering */
 		if(bAdaptTempering)
@@ -269,6 +270,7 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 			if(MASTER(cr))
 				fprintf(stderr, "\nNOTE: Adaptive tempering is turned on. For multiple copies, parameter exchange scheme will be used instead of normal temperature exchange scheme by default. (See ref.)\n");
 		}
+<<<<<<< HEAD
 		
 		/* Initialize the multiple topologies */
 		if(bMulTop)
@@ -308,6 +310,8 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 				sfree(states[i]);
 			sfree(states);
 		}
+=======
+>>>>>>> ToBeReleased
 
     /* Check for special mdrun options */
     bRerunMD = (Flags & MD_RERUN);
@@ -1255,27 +1259,31 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 				/* Before doing force, update the final topology */
 				if(bMulTop)
 				{
-					/* always update at the first step */
 					if(bFirstStep)
 					{
 						MulTop_Local_InitFinalTopology(MulTopLocal);
-
-						MulTop_Local_UpdateFinalTopology(MulTopLocal, MulTopAdditionalEnergy, ir->opts.ref_t[0]);
+						MulTop_Local_UpdateFinalTopologyBasic(MulTopLocal);
+						MulTop_Local_UpdateFinalTopologyParameters(MulTopLocal, MulTopAdditionalEnergy, ir->opts.ref_t[0]);
 					}
+					else
+						MulTop_Local_UpdateFinalTopologyBasic(MulTopLocal);
 					
-					/* if tempering is applied, update after every temperature move. */
+					/* if tempering is applied, update parameters after every temperature move. */
 					if(bAdaptTempering)
 					{
-						if(bAdaptTemperingUpdated || bFirstStep)
+						if(bAdaptTemperingUpdated && !bFirstStep)
 						{
-							MulTop_Local_UpdateFinalTopology(MulTopLocal, MulTopAdditionalEnergy, AdaptTemperingCurrentTemperature(AdaptTempering));
+							MulTop_Local_UpdateFinalTopologyParameters(MulTopLocal, MulTopAdditionalEnergy, AdaptTemperingCurrentTemperature(AdaptTempering));
 						}
 					}
 				}
 
+<<<<<<< HEAD
 				if(bMulTop && bNS)
 					mt_debug_p_top(MulTop_Local_GetFinalTopology(MulTopLocal), NULL, cr, 1); 
 
+=======
+>>>>>>> ToBeReleased
         if (shellfc)
         {
             /* Now is the time to relax the shells */
@@ -1331,10 +1339,23 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 				/* After doing force, add the additional energy terms. */
 				if(bMulTop)
 				{
-					for(i=0; i<F_EPOT; i++)
+					if(bAdaptTempering)
+						if(do_tempering)
+						{
+							MulTopLocalEnergy = MulTop_Local_OnlyCalcAdditionalEnergy(MulTopLocal, fr, state, enerd, AdaptTemperingCurrentTemperature(AdaptTempering));
+							MulTopGlobalEnergy = MulTop_Global_GetEnergy(MulTopLocalEnergy, cr);
+							fprintf(GE,"%lg\t%lg\n",0.002*step, MulTopGlobalEnergy);
+
+							fflush(GE);
+						}
+					
+					if(MASTER(cr))
 					{
-						enerd->term[i] += MulTopAdditionalEnergy[i];
-						enerd->term[F_EPOT] += MulTopAdditionalEnergy[i];
+						for(i=0; i<F_EPOT; i++)
+						{
+							enerd->term[i] += MulTopAdditionalEnergy[i];
+							enerd->term[F_EPOT] += MulTopAdditionalEnergy[i];
+						}
 					}
 				}
 
@@ -2141,10 +2162,11 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
         }
 				
 				if(bAdaptTempering)
-					/* For adaptive tempering, update data, temperature and change the force scaling factor */
-					bAdaptTemperingUpdated = AdaptTemperingUpdate(AdaptTempering, step,
-							do_tempering, bFirstStep, bLastStep, do_ene,(mdof_flags & MDOF_XTC),
-							cr, enerd);
+					if(do_tempering)
+					/* Update temperature */
+						bAdaptTemperingUpdated = AdaptTemperingUpdate(AdaptTempering, step,
+							bFirstStep, bLastStep, do_ene,(mdof_flags & MDOF_XTC),
+							(mdof_flags & MDOF_CPT), cr, enerd, bMulTop, MulTopGlobalEnergy);
 
         /* #########  END PREPARING EDR OUTPUT  ###########  */
 		
@@ -2432,5 +2454,7 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 
     runtime->nsteps_done = step_rel;
 
+		fclose(GE);
+			
     return 0;
 }

@@ -55,7 +55,7 @@ static int at_doevery(llong_t step, int nst, bool bfirst, bool blast)
 /* write various output files */
 static void at_output(at_t *at, llong_t step,
 		      int ib, double invw, double t1, double t2, double Eav,
-		      bool bfirst, bool blast, bool btr)
+		      bool bfirst, bool blast, bool btr, bool bflush)
 {
   bool btrace;
 
@@ -64,6 +64,11 @@ static void at_output(at_t *at, llong_t step,
     btrace = (step % at->nsttrace == 0) || bfirst || blast;
   else /* tracing is disabled if at->nsttrace == 0 */
     btrace = (at->nsttrace == 0) ? btr : 0;
+
+	if(bflush)
+		at->log->flags |= LOG_FLUSHAFTER;
+	else
+		at->log->flags ^= LOG_FLUSHAFTER;
 
   if (btrace) {
     log_printf(at->log, "%10.3f %5d %10.6f %12.3f %12.3f %10.6f %8.3f %8.5f",
@@ -428,7 +433,7 @@ int AdaptTempering_DumpToFile(at_t *at, const char *fname, int arrmax)
   return 0;
 }
 
-int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, bool btr)
+int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, bool btr, bool bflush)
 {
   double invwf = 1.0, T1 = 0., T2 = 0., Eav = 0., ndlnwfdbeta;
   int ib, rep;
@@ -451,7 +456,7 @@ int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, boo
 
   if (at_doevery(step, at->mb->nstrefresh, 0, blast))
     mb_refresh_et(at->mb, 1);
-  at_output(at, step, ib, invwf, T1, T2, Eav, bfirst, blast, btr);
+  at_output(at, step, ib, invwf, T1, T2, Eav, bfirst, blast, btr, bflush);
   return 0;
 }
 

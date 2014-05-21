@@ -75,7 +75,7 @@ set(MDRUN_SOURCES
     md.c         mdrun.c    genalg.c membed.c
 		AdaptTempering.c AdaptTemperingMultiBin.c
 		AdaptTemperingUtil.c 
-		MultiTopo.c MultiTopoDebug.c )
+		MultiTopo.c )
 
 add_library(gmxpreprocess ${GMXPREPROCESS_SOURCES})
 target_link_libraries(gmxpreprocess md)

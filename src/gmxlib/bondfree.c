@@ -1916,8 +1916,8 @@ real pdihs(int nbonds,
                    f, fshift, pbc, g, x, t1, t2, t3); /* 112		*/
 
 #ifdef DEBUG
-        fprintf(debug, "pdih: (%d,%d,%d,%d) phi=%g \t v=%g\n",
-                ai, aj, ak, al, phi, vpd);
+        fprintf(debug, "pdih: (%d,%d,%d,%d) phi=%g\n",
+                ai, aj, ak, al, phi);
 #endif
     } /* 223 TOTAL  */
 
@@ -2188,8 +2188,8 @@ real idihs(int nbonds,
 #ifdef DEBUG
         if (debug)
         {
-            fprintf(debug, "idih: (%d,%d,%d,%d) phi=%g \t v=%g\n",
-                    ai, aj, ak, al, phi, 0.5*kk*dp2);
+            fprintf(debug, "idih: (%d,%d,%d,%d) phi=%g\n",
+                    ai, aj, ak, al, phi);
         }
 #endif
     }
