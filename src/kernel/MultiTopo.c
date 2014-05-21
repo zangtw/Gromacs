@@ -1849,6 +1849,8 @@ void MulTop_Local_UpdateFinalTopologyParameters(mt_ltops_t *ltops, real *pot, re
 	else if(ltops->Tmax != ltops->Tref)
 		weight[1] = parameter * (T - ltops->Tref);
 	else weight[1] = parameter;
+	if(weight[1] < 1e-6)
+		weight[1] = 0;
 
 	for(j=0; j<tops[0]->idef.ntypes; j++)
 	{
@@ -1892,7 +1894,9 @@ real MulTop_Local_OnlyCalcAdditionalEnergy(mt_ltops_t *ltops, const t_forcerec *
 	else if(ltops->Tmax != ltops->Tref)
 		weight = parameter * (T - ltops->Tref);
 	else weight = parameter;
-
+	if(weight < 1e-6)
+		weight = 0;
+	
 	if(fr->bMolPBC)
 	{
 		snew(pbc, 1);
