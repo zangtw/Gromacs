@@ -256,7 +256,9 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 		/* Below are variables for multiple topologies */
 		gmx_bool bMulTop = Flags & MD_MULTOP;
 		mt_ltops_t *MulTopLocal;
+		real MulTopLocalEnergy, MulTopGlobalEnergy;
 		real MulTopAdditionalEnergy[F_EPOT];
+		FILE *GE = fopen("GE","w");
 
 		/* Initialize the adaptive tempering */
 		if(bAdaptTempering)
@@ -1289,6 +1291,16 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 				/* After doing force, add the additional energy terms. */
 				if(bMulTop)
 				{
+					if(bAdaptTempering)
+						if(do_tempering)
+						{
+							MulTopLocalEnergy = MulTop_Local_OnlyCalcAdditionalEnergy(MulTopLocal, fr, state, enerd, AdaptTemperingCurrentTemperature(AdaptTempering));
+							MulTopGlobalEnergy = MulTop_Global_GetEnergy(MulTopLocalEnergy, cr);
+							fprintf(GE,"%lg\t%lg\n",0.002*step, MulTopGlobalEnergy);
+
+							fflush(GE);
+						}
+					
 					if(MASTER(cr))
 					{
 						for(i=0; i<F_EPOT; i++)
@@ -2102,10 +2114,11 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
         }
 				
 				if(bAdaptTempering)
-					/* For adaptive tempering, update data, temperature and change the force scaling factor */
-					bAdaptTemperingUpdated = AdaptTemperingUpdate(AdaptTempering, step,
-							do_tempering, bFirstStep, bLastStep, do_ene,(mdof_flags & MDOF_XTC),
-							(mdof_flags & MDOF_CPT), cr, enerd);
+					if(do_tempering)
+					/* Update temperature */
+						bAdaptTemperingUpdated = AdaptTemperingUpdate(AdaptTempering, step,
+							bFirstStep, bLastStep, do_ene,(mdof_flags & MDOF_XTC),
+							(mdof_flags & MDOF_CPT), cr, enerd, bMulTop, MulTopGlobalEnergy);
 
         /* #########  END PREPARING EDR OUTPUT  ###########  */
 		
@@ -2393,5 +2406,7 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 
     runtime->nsteps_done = step_rel;
 
+		fclose(GE);
+			
     return 0;
 }

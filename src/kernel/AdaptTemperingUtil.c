@@ -912,22 +912,27 @@ gmx_bool AdaptTemperingDoTemperingThisStep(at_t *at, gmx_large_int_t step,
 }
 
 gmx_bool AdaptTemperingUpdate(at_t *at, gmx_large_int_t step, 
-		gmx_bool bTempering, gmx_bool bFirstStep, gmx_bool bLastStep, 
-		gmx_bool bTotE, gmx_bool bXTC, gmx_bool bCPT, t_commrec *cr, gmx_enerdata_t *enerd)
+		gmx_bool bFirstStep, gmx_bool bLastStep, gmx_bool bTotE, 
+		gmx_bool bXTC, gmx_bool bCPT, t_commrec *cr, 
+		gmx_enerdata_t *enerd, gmx_bool bMulTop, real extraE)
 {
-	if(!bTempering)
-		return 0;
+	if(!bTotE)  
+		gmx_fatal(FARGS, "global potential energy not avaiable at step: " llong_pfmt " \n", step);
 	
-	if(!bTotE)
-		gmx_fatal(FARGS,"Total potential energy is absent when doing tempering.");
 	if(SIMMASTER(cr))
+	{
 		at->Ea = enerd->term[F_EPOT];
+		
+		if(bMulTop)
+			at->Ea = at->Ea - extraE;
+	}
 
   /* change temperature, and regularly write output files */
   if (SIMMASTER(cr)) {
     if (AdaptTempering_Langevin(at, (llong_t)step, bFirstStep, bLastStep, bXTC, bCPT))
 			gmx_fatal(FARGS,"node %d, step: " llong_pfmt ", error during moving master\n", cr->nodeid, step);
   }
+	
 	if (SIMMASTER(cr))
 		AdaptTempering_UpdateTemperature(at);
 	if (PAR(cr))

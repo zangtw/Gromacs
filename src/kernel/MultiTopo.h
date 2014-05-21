@@ -35,6 +35,9 @@ void MulTop_Global_RefreshForceFieldParameters(mt_gtops_t *gtops);
 /* Broadcast gtops information to non-master node. */
 void MulTop_Global_Bcast(mt_gtops_t *gtops, t_commrec *cr);
 
+/* Collect energy from every nodes */
+real MulTop_Global_GetEnergy(real v, t_commrec *cr);
+
 /* Initialize ltops from gtops */
 mt_ltops_t *MulTop_Local_Init(mt_gtops_t *gtops);
 
@@ -58,5 +61,8 @@ void MulTop_Local_UpdateFinalTopologyParameters(mt_ltops_t *ltops, real *pot, re
 
 /* Return the final topology (for force calculation). */
 gmx_localtop_t *MulTop_Local_GetFinalTopology(mt_ltops_t *ltops);
+
+/* Minimalist method to calculate (bonded) energy from additional topologies. */ 
+real MulTop_Local_OnlyCalcAdditionalEnergy(mt_ltops_t *ltops, const t_forcerec *fr, const t_state *state, const gmx_enerdata_t *enerd, real T);
 
 #endif

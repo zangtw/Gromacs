@@ -11,6 +11,8 @@
 #include "domdec.h"
 #include "filenm.h"
 #include "mtop_util.h"
+#include "pbc.h"
+#include "bondf.h"
 #include "MultiTopo.h"
 
 /* Records of the relationship between various global topologies.
@@ -307,6 +309,18 @@ static void iparams_cal(t_iparams *tar, t_iparams *src0, t_iparams *src1,
 					gmx_fatal(FARGS,"Error! Some bonded parameters are zero both in topology 0 and topology 1. Check your topology settings.");
 			
 				tar->harmonic.rA /= tar->harmonic.krA;
+			
+				if(ftype != F_BONDS)
+				{
+					if(tar->harmonic.rA >= 1800 || tar->harmonic.rA < -1800)
+						fprintf(stderr, "Large calculated angle: %lg\n", tar->harmonic.rA);
+					
+					while (tar->harmonic.rA >= 180)
+						tar->harmonic.rA -= 360;
+					while (tar->harmonic.rA < -180)
+						tar->harmonic.rA += 360;
+				}
+				
 				pot[ftype] += src0->harmonic.krA * src1->harmonic.krA / tar->harmonic.krA 
 											* (src0->harmonic.rA - src1->harmonic.rA)
 											* (src0->harmonic.rA - src1->harmonic.rA)
@@ -824,6 +838,204 @@ static void MulTop_Local_UpdateRecordsSingleProcessor(MulTop_LocalRecords *lr, i
 		LREC_L2G[i] = i;
 		LREC_G2L[i] = i;
 	}
+}
+
+static real MulTop_Local_CalcBonds(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+{
+	real vtot, k, x;
+	int i, type, ai, aj;
+	rvec dd;
+	real dr, dr2, dx, dx2;
+
+	for(i=0, vtot=0; i<nbonds;)
+	{
+		type = atoms[i++];
+		ai   = atoms[i++];
+		aj   = atoms[i++];
+		k    = params[type].harmonic.krA;
+		x    = params[type].harmonic.rA;
+		
+		if(k == 0)
+			continue;
+
+		if(pbc)
+      pbc_dx_aiuc(pbc, coord[ai], coord[aj], dd);
+		else 
+      rvec_sub(coord[ai], coord[aj], dd);
+
+    dr2  = iprod(dd, dd);       
+    dr   = dr2*gmx_invsqrt(dr2);
+		dx   = dr - x;
+		dx2  = dx * dx;
+
+		vtot += 0.5 * k * dx2;
+	}
+
+	return vtot;
+}
+
+static real MulTop_Local_CalcAngles(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+{
+	real vtot, k, x;
+	int i, type, ai, aj, ak;
+	real dx, dx2;
+	rvec r_ij, r_kj;
+	real cos_theta, theta;
+	int t1, t2;
+
+	for(i=0, vtot=0; i<nbonds;)
+	{
+		type = atoms[i++];
+		ai   = atoms[i++];
+		aj   = atoms[i++];
+		ak   = atoms[i++];
+		k    = params[type].harmonic.krA;
+		x    = params[type].harmonic.rA * DEG2RAD;
+		
+		if(k == 0)
+			continue;
+
+    theta  = bond_angle(coord[ai], coord[aj], coord[ak], pbc,
+                            r_ij, r_kj, &cos_theta, &t1, &t2);  /*  41		*/
+
+		dx   = theta - x;
+		dx2  = dx * dx;
+
+		vtot += 0.5 * k * dx2;
+	}
+
+	return vtot;
+}
+
+static real MulTop_Local_CalcIdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+{
+	real vtot, k, x;
+	int i, type, ai, aj, ak, al;
+	real dx, dx2;
+	rvec r_ij, r_kj, r_kl, m, n;
+	real phi, sign;
+	int t1, t2, t3;
+	static real ANGLE_WARNING = M_PI * 10;
+
+	for(i=0, vtot=0; i<nbonds;)
+	{
+		type = atoms[i++];
+		ai   = atoms[i++];
+		aj   = atoms[i++];
+		ak   = atoms[i++];
+		al   = atoms[i++];
+		k    = params[type].harmonic.krA;
+		x    = params[type].harmonic.rA * DEG2RAD;
+		
+		if(k == 0)
+			continue;
+    
+		phi = dih_angle(coord[ai], coord[aj], coord[ak], coord[al], pbc, 
+				r_ij, r_kj, r_kl, m, n, &sign, &t1, &t2, &t3);  /*  84		*/
+
+		dx   = phi - x;
+					
+		if(dx >= ANGLE_WARNING || dx < -1 * ANGLE_WARNING)
+			fprintf(stderr, "Large calculated angle diff: %lg\n", dx * RAD2DEG);
+		while (dx >= M_PI)
+      dx -= 2*M_PI;
+    while (dx < -M_PI)
+      dx += 2*M_PI;
+
+		dx2  = dx * dx;
+
+		vtot += 0.5 * k * dx2;
+	}
+
+	return vtot;
+}
+
+static real MulTop_Local_CalcPdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+{
+	real vtot, c0, phi0;
+	int i, type, ai, aj, ak, al;
+	rvec r_ij, r_kj, r_kl, m, n;
+	real phi, sign;
+	int t1, t2, t3;
+	real multphi;
+
+	for(i=0, vtot=0; i<nbonds;)
+	{
+		type = atoms[i++];
+		ai   = atoms[i++];
+		aj   = atoms[i++];
+		ak   = atoms[i++];
+		al   = atoms[i++];
+		c0   = params[type].pdihs.cpA;
+		
+		if(c0 == 0)
+			continue;
+		
+		phi0 = params[type].pdihs.phiA * DEG2RAD;
+    
+		phi = dih_angle(coord[ai], coord[aj], coord[ak], coord[al], pbc, 
+				r_ij, r_kj, r_kl, m, n, &sign, &t1, &t2, &t3);  /*  84		*/
+		multphi = params[type].pdihs.mult * phi;
+
+		vtot += c0 + c0 * cos(multphi - phi0);
+	}
+
+	return vtot;
+}
+
+static real MulTop_Local_CalcPIdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+{
+	return MulTop_Local_CalcPdihs(nbonds, atoms, params, coord, pbc);
+}
+
+static real MulTop_Local_CalcRBdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+{
+	real vtot, c0, phi0;
+	int i, j, type, ai, aj, ak, al;
+	rvec r_ij, r_kj, r_kl, m, n;
+	real phi, sign;
+	int t1, t2, t3;
+  real param[NR_RBDIHS];
+	gmx_bool skip;
+	real v, cosfac, cos_phi;
+
+	for(i=0, vtot=0; i<nbonds;)
+	{
+		type = atoms[i++];
+		ai   = atoms[i++];
+		aj   = atoms[i++];
+		ak   = atoms[i++];
+		al   = atoms[i++];
+
+		for(j=0, skip = TRUE; j<NR_RBDIHS; j++)
+		{
+			param[j] = params[type].rbdihs.rbcA[j];
+			
+			if(param[j] != 0)
+				skip = FALSE;
+		}
+		if(skip)
+			continue;
+
+		phi = dih_angle(coord[ai], coord[aj], coord[ak], coord[al], pbc, 
+				r_ij, r_kj, r_kl, m, n, &sign, &t1, &t2, &t3);  /*  84		*/
+		cos_phi = cos(phi);
+
+		for(j = 1, v = param[0], cosfac = cos_phi; j<NR_RBDIHS; j++)
+		{
+			cosfac *= cos_phi;
+			v += param[j] * cosfac;
+		}
+
+		vtot += v;
+	}
+
+	return vtot;
+}
+
+static real MulTop_Local_CalcFdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+{
+	return MulTop_Local_CalcRBdihs(nbonds, atoms, params, coord, pbc);
 }
 
 /*static void update_lr_send(gmx_domdec_t *dd, MulTop_LocalRecords *lr)*/
@@ -1469,6 +1681,13 @@ void MulTop_Global_Bcast(mt_gtops_t *gtops, t_commrec *cr)
 	}
 }
 
+real MulTop_Global_GetEnergy(real v, t_commrec *cr)
+{
+	gmx_sum(1, &v, cr);
+
+	return v;
+}
+
 mt_ltops_t *MulTop_Local_Init(mt_gtops_t *gtops)
 {
 	int ntop = gtops->ntop;
@@ -1644,4 +1863,104 @@ void MulTop_Local_UpdateFinalTopologyParameters(mt_ltops_t *ltops, real *pot, re
 gmx_localtop_t *MulTop_Local_GetFinalTopology(mt_ltops_t *ltops)
 {
 	return ltops->top_final;
+}
+
+real MulTop_Local_OnlyCalcAdditionalEnergy(mt_ltops_t *ltops, const t_forcerec *fr, const t_state *state, const gmx_enerdata_t *enerd, real T)
+{
+	real v, vi;
+	real *pot;
+	int thread;
+	int ntop = ltops->ntop;
+	t_ilist *ilist;
+	t_iatom *iatoms;
+	t_iparams *iparams;
+	int i;
+	t_pbc *pbc;
+	rvec *coord = state->x;
+	real weight;
+	static int count = 0;
+	static real parameter;
+	
+	if(!count)
+	{
+		if(ltops->Tmax != ltops->Tref)
+			parameter = ltops->Wmax / (ltops->Tmax - ltops->Tref);
+		else parameter = ltops->Wmax;
+	}
+	if(T < ltops->Tref)
+		weight = 0;
+	else if(ltops->Tmax != ltops->Tref)
+		weight = parameter * (T - ltops->Tref);
+	else weight = parameter;
+
+	if(fr->bMolPBC)
+	{
+		snew(pbc, 1);
+		set_pbc(pbc, fr->ePBC, state->box);
+	}
+	else pbc = NULL;
+	  
+	ilist = &(ltops->top_final->idef.il);
+
+	for(i=1, v=0; i<ntop; i++)
+	{
+		iparams = ltops->tops[i]->idef.iparams;
+		
+		snew(pot, fr->nthreads);
+		
+		vi = 0;
+
+#pragma omp parallel for num_threads(fr->nthreads) schedule(static)
+    for (thread = 0; thread < fr->nthreads; thread++)
+    {
+      int  ftype, nbonds, nat1;
+      int  nb0, nbn;
+	  	real *ener;
+
+	  	ener = pot + thread;
+
+      /* Loop over all bonded force types to calculate the bonded forces */
+      for (ftype = 0; (ftype < F_NRE); ftype++)
+      {
+				if(ilist[ftype].nr == 0)
+					continue;
+
+        nat1   = interaction_function[ftype].nratoms + 1;
+        nbonds = ilist[ftype].nr/nat1;
+				iatoms = ilist[ftype].iatoms;
+        nb0 = ((nbonds* thread   )/(fr->nthreads))*nat1;
+        nbn = ((nbonds*(thread+1))/(fr->nthreads))*nat1 - nb0;
+          
+				if (ftype == F_BONDS)
+          *ener += MulTop_Local_CalcBonds(nbn, iatoms+nb0, iparams, coord, pbc);
+				else if(ftype == F_ANGLES)
+          *ener += MulTop_Local_CalcAngles(nbn, iatoms+nb0, iparams, coord, pbc);
+				else if(ftype == F_IDIHS)
+          *ener += MulTop_Local_CalcIdihs(nbn, iatoms+nb0, iparams, coord, pbc);
+				else if(ftype == F_PDIHS)
+          *ener += MulTop_Local_CalcPdihs(nbn, iatoms+nb0, iparams, coord, pbc);
+				else if(ftype == F_PIDIHS)
+          *ener += MulTop_Local_CalcPIdihs(nbn, iatoms+nb0, iparams, coord, pbc);
+				else if(ftype == F_RBDIHS)
+          *ener += MulTop_Local_CalcRBdihs(nbn, iatoms+nb0, iparams, coord, pbc);
+				else if(ftype == F_FOURDIHS)
+          *ener += MulTop_Local_CalcFdihs(nbn, iatoms+nb0, iparams, coord, pbc);
+				else continue;
+      }
+    }
+
+    for (thread = 0; thread < fr->nthreads; thread++)
+			vi += pot[thread];
+
+		v += vi * weight;
+	}
+
+	v += enerd->term[F_VDW14];
+
+	if(pbc != NULL)
+		sfree(pbc);
+
+	count++;
+
+	return v;
 }
