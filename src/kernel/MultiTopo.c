@@ -770,8 +770,8 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
 					res0 = mtop0->moltype[b0].atoms.atom[a0].resind;
 					anm0 = *(mtop0->moltype[b0].atoms.atomname[a0]);
 
-					if (res0!=resi)
-						continue;
+					//if (res0!=resi)
+						//continue;
 					if (*anm0 != *anmi)
 						continue;
 					if(*(anm0+1) != *(anmi+1))
