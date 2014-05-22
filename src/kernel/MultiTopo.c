@@ -728,8 +728,8 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
 
 					/* Followings are the criteria */
 
-       		if (res0!=resi)
-       			continue;
+       		//if (res0!=resi)
+       			//continue;
 
        		/* use fuzzy search, e.g. CG1==CG2 but CG1!=CB1 */
        		if (*anm0 != *anmi)
