@@ -535,7 +535,7 @@ static void iparams_copy(t_iparams *tar, t_iparams *src, int ftype)
 }
 
 /* Note: gr->find_atom[i] will be re-allocated in MulTop_Global_LoadData or MulTop_Global_CalcData). */
-static void MulTop_Global_InitRecords(mt_gtops_t *gtops)
+static void MulTop_Global_InitRecords(mt_gtops_t *gtops, t_commrec *cr)
 {
 	int i, j, k;
 	int ntop = gtops->ntop;
@@ -560,6 +560,8 @@ static void MulTop_Global_InitRecords(mt_gtops_t *gtops)
 	}
 
 	sprintf(gtops->gr->file_nm, "GREC");
+	if(cr->ms != NULL)
+		sprintf(gtops->gr->file_nm + 4, "%d", cr->ms->sim);
 }
 
 static void MulTop_Global_InitDihedral(mt_gtops_t *gtops)
@@ -582,21 +584,23 @@ static void MulTop_Global_InitDihedral(mt_gtops_t *gtops)
 	}
 }
 
-static gmx_bool MulTop_Global_OpenFile(mt_gtops_t *gtops, FILE **fp)
+static void MulTop_Global_OpenFile(mt_gtops_t *gtops, FILE **fp, int mode)
 {
 	FILE *file;
 	MulTop_GlobalRecords *gr = gtops->gr;
 
-	if((file = fopen(gr->file_nm, "r")) == NULL)
+	if(mode == 0)
+	{
+		if((file = fopen(gr->file_nm, "r")) == NULL)
+			gmx_fatal(FARGS,"Cannot open file: %s.\n", gr->file_nm);
+	}
+	else 
 	{
 		if((file = fopen(gr->file_nm, "w")) == NULL)
-			gmx_fatal(FARGS,"Error opening file: %s.", gr->file_nm);
-		*fp = file;
-		return FALSE;
+			gmx_fatal(FARGS,"Cannot write file: %s.\n", gr->file_nm);
 	}
-
+		
 	*fp = file;
-	return TRUE; 
 }
 
 /* Save the global record to file. */
@@ -1175,7 +1179,7 @@ int MulTop_Global_GetInputFileName(char **fns[], const char *opt, int nfile, con
 	return ntop+1;
 }
 
-mt_gtops_t *MulTop_Global_Init(int ntop, real Tref, real Tmax, real Wmax, gmx_bool bMASTER)
+mt_gtops_t *MulTop_Global_Init(int ntop, real Tref, real Tmax, real Wmax, t_commrec *cr)
 {
 	int i;
 	mt_gtops_t *gtops;
@@ -1195,10 +1199,10 @@ mt_gtops_t *MulTop_Global_Init(int ntop, real Tref, real Tmax, real Wmax, gmx_bo
 	MulTop_Global_InitDihedral(gtops);
 
 	gtops->gr=NULL;
-	if(bMASTER)
+	if(MASTER(cr))
 	{
 		snew(gtops->gr, 1);
-		MulTop_Global_InitRecords(gtops);
+		MulTop_Global_InitRecords(gtops, cr);
 	}
 
 	/* Init the static array. The memory will be released after writing the GREC file. */
@@ -1240,8 +1244,7 @@ void MulTop_Global_LoadData(mt_gtops_t *gtops)
 	MulTop_GlobalRecords *gr = gtops->gr;
 	FILE *fp;
 
-	if(!MulTop_Global_OpenFile(gtops, &fp))
-		gmx_fatal(FARGS,"File type is 'w'. No data to load!");
+	MulTop_Global_OpenFile(gtops, &fp, 0);
 
 	for(t=0; t<ntop; t++)
 	{
@@ -1298,8 +1301,7 @@ void MulTop_Global_CalcData(mt_gtops_t *gtops, t_state **states_tot, t_state *st
 	t_state *state_tar;
 	int i;
 
-	if(MulTop_Global_OpenFile(gtops, &fp))
-		gmx_fatal(FARGS,"File type is 'r'. No data to be calculated!");
+	MulTop_Global_OpenFile(gtops, &fp, 1);
 
 	for(i=0; i<ntop; i++)
 	{

@@ -15,7 +15,7 @@ typedef struct MulTop_LocalTops_t  mt_ltops_t;
 int MulTop_Global_GetInputFileName(char **fns[], const char *opt, int nfile, const t_filenm fnm[], t_commrec *cr);
 
 /* Initializaion. Skip gtops->gr for non-master nodes. */ 
-mt_gtops_t *MulTop_Global_Init(int ntop, real Tref, real Tmax, real Wmax, gmx_bool bMASTER);
+mt_gtops_t *MulTop_Global_Init(int ntop, real Tref, real Tmax, real Wmax, t_commrec *cr);
 
 /* Set reference topology */
 void MulTop_Global_SetReferenceTopology(mt_gtops_t *gtops, gmx_mtop_t *mtop);
