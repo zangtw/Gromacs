@@ -249,14 +249,14 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 		/* Below are variables for adaptive tempering */
 		gmx_bool bAdaptTempering = Flags & MD_ADAPTIVETEMPERING;
 		gmx_bool bAdaptTemperingUpdated = 0;
-		gmx_bool do_tempering;
-		at_t *AdaptTempering;
+		gmx_bool do_tempering = 0;
+		at_t *AdaptTempering = NULL;
 		at_repl_ex_t *at_repl_ex = NULL;
 		
 		/* Below are variables for multiple topologies */
 		gmx_bool bMulTop = Flags & MD_MULTOP;
-		mt_ltops_t *MulTopLocal;
-		real MulTopLocalEnergy, MulTopGlobalEnergy;
+		mt_ltops_t *MulTopLocal = NULL;
+		real MulTopLocalEnergy = 0, MulTopGlobalEnergy = 0;
 		real MulTopAdditionalEnergy[F_EPOT];
 
 		/* Initialize the adaptive tempering */
@@ -1294,7 +1294,7 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 						if(do_tempering)
 						{
 							MulTopLocalEnergy = MulTop_Local_OnlyCalcAdditionalEnergy(MulTopLocal, fr, state, enerd, AdaptTemperingCurrentTemperature(AdaptTempering));
-							MulTopGlobalEnergy = MulTop_Global_GetEnergy(MulTopLocalEnergy, cr);
+							MulTopGlobalEnergy = MulTop_Global_GetEnergy(MulTopGlobal, MulTopLocalEnergy, cr);
 						}
 					
 					if(MASTER(cr))

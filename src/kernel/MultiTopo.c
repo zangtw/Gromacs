@@ -840,7 +840,7 @@ static void MulTop_Local_UpdateRecordsSingleProcessor(MulTop_LocalRecords *lr, i
 	}
 }
 
-static real MulTop_Local_CalcBonds(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+static real MulTop_Local_CalcBonds(int nbonds, t_iatom atoms[], t_iparams params[], rvec coord[], t_pbc *pbc)
 {
 	real vtot, k, x;
 	int i, type, ai, aj;
@@ -874,7 +874,7 @@ static real MulTop_Local_CalcBonds(int nbonds, const t_iatom atoms[], const t_ip
 	return vtot;
 }
 
-static real MulTop_Local_CalcAngles(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+static real MulTop_Local_CalcAngles(int nbonds, t_iatom atoms[], t_iparams params[], rvec coord[], t_pbc *pbc)
 {
 	real vtot, k, x;
 	int i, type, ai, aj, ak;
@@ -907,7 +907,7 @@ static real MulTop_Local_CalcAngles(int nbonds, const t_iatom atoms[], const t_i
 	return vtot;
 }
 
-static real MulTop_Local_CalcIdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+static real MulTop_Local_CalcIdihs(int nbonds, t_iatom atoms[], t_iparams params[], rvec coord[], t_pbc *pbc)
 {
 	real vtot, k, x;
 	int i, type, ai, aj, ak, al;
@@ -950,7 +950,7 @@ static real MulTop_Local_CalcIdihs(int nbonds, const t_iatom atoms[], const t_ip
 	return vtot;
 }
 
-static real MulTop_Local_CalcPdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+static real MulTop_Local_CalcPdihs(int nbonds, t_iatom atoms[], t_iparams params[], rvec coord[], t_pbc *pbc)
 {
 	real vtot, c0, phi0;
 	int i, type, ai, aj, ak, al;
@@ -983,12 +983,12 @@ static real MulTop_Local_CalcPdihs(int nbonds, const t_iatom atoms[], const t_ip
 	return vtot;
 }
 
-static real MulTop_Local_CalcPIdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+static real MulTop_Local_CalcPIdihs(int nbonds, t_iatom atoms[], t_iparams params[], rvec coord[], t_pbc *pbc)
 {
 	return MulTop_Local_CalcPdihs(nbonds, atoms, params, coord, pbc);
 }
 
-static real MulTop_Local_CalcRBdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+static real MulTop_Local_CalcRBdihs(int nbonds, t_iatom atoms[], t_iparams params[], rvec coord[], t_pbc *pbc)
 {
 	real vtot, c0, phi0;
 	int i, j, type, ai, aj, ak, al;
@@ -1033,7 +1033,7 @@ static real MulTop_Local_CalcRBdihs(int nbonds, const t_iatom atoms[], const t_i
 	return vtot;
 }
 
-static real MulTop_Local_CalcFdihs(int nbonds, const t_iatom atoms[], const t_iparams params[], const rvec coord[], const t_pbc *pbc)
+static real MulTop_Local_CalcFdihs(int nbonds, t_iatom atoms[], t_iparams params[], rvec coord[], t_pbc *pbc)
 {
 	return MulTop_Local_CalcRBdihs(nbonds, atoms, params, coord, pbc);
 }
@@ -1681,9 +1681,23 @@ void MulTop_Global_Bcast(mt_gtops_t *gtops, t_commrec *cr)
 	}
 }
 
-real MulTop_Global_GetEnergy(real v, t_commrec *cr)
+real MulTop_Global_GetEnergy(mt_gtops_t *gtops, real v, t_commrec *cr)
 {
+	static real parameter;
+	static int count = 0;
+	
+	if(!count)
+	{
+		if(gtops->Tmax != gtops->Tref)
+			parameter = gtops->Wmax * gtops->Tref / (gtops->Tmax - gtops->Tref);
+		else gmx_fatal(FARGS, "This function cannot be called when Tmax==Tref!");
+	}
+	
 	gmx_sum(1, &v, cr);
+
+	v *= parameter;
+
+	count ++;
 
 	return v;
 }
@@ -1867,7 +1881,7 @@ gmx_localtop_t *MulTop_Local_GetFinalTopology(mt_ltops_t *ltops)
 	return ltops->top_final;
 }
 
-real MulTop_Local_OnlyCalcAdditionalEnergy(mt_ltops_t *ltops, const t_forcerec *fr, const t_state *state, const gmx_enerdata_t *enerd, real T)
+real MulTop_Local_OnlyCalcAdditionalEnergy(mt_ltops_t *ltops, t_forcerec *fr, t_state *state, gmx_enerdata_t *enerd, real T)
 {
 	real v, vi;
 	real *pot;
