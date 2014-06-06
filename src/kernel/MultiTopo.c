@@ -1865,7 +1865,7 @@ void MulTop_Local_UpdateFinalTopologyParameters(mt_ltops_t *ltops, real *pot, re
 	else if(ltops->Tmax != ltops->Tref)
 		weight[1] = parameter * (T - ltops->Tref);
 	else weight[1] = parameter;
-	if(weight[1] < 1e-6)
+	if(weight[1] < 1e-8)
 		weight[1] = 0;
 
 	for(j=0; j<tops[0]->idef.ntypes; j++)
@@ -1902,15 +1902,13 @@ real MulTop_Local_OnlyCalcAdditionalEnergy(mt_ltops_t *ltops, t_forcerec *fr, t_
 	if(!count)
 	{
 		if(ltops->Tmax != ltops->Tref)
-			parameter = ltops->Wmax / (ltops->Tmax - ltops->Tref);
+			parameter = ltops->Wmax * ltops->Tref / (ltops->Tmax - ltops->Tref);
 		else parameter = ltops->Wmax;
 	}
 	if(T < ltops->Tref)
 		weight = 0;
-	else if(ltops->Tmax != ltops->Tref)
-		weight = parameter * (T - ltops->Tref);
 	else weight = parameter;
-	if(weight < 1e-6)
+	if(weight < 1e-8)
 		weight = 0;
 	
 	if(fr->bMolPBC)
@@ -1920,7 +1918,7 @@ real MulTop_Local_OnlyCalcAdditionalEnergy(mt_ltops_t *ltops, t_forcerec *fr, t_
 	}
 	else pbc = NULL;
 	  
-	ilist = &(ltops->top_final->idef.il);
+	ilist = &(ltops->top_final->idef.il[0]);
 
 	for(i=1, v=0; i<ntop; i++)
 	{
