@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+
 #include "AdaptTemperingMultiBin.h"
 #include "AdaptTempering.h"
 
@@ -433,13 +435,19 @@ int AdaptTempering_DumpToFile(at_t *at, const char *fname, int arrmax)
   return 0;
 }
 
-int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, bool btr, bool bflush)
+int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, bool btr, bool bflush, int delay)
 {
   double invwf = 1.0, T1 = 0., T2 = 0., Eav = 0., ndlnwfdbeta;
   int ib, rep;
   double *varr = NULL;
-	double noise = (*at->grand)();
+	double noise;
+
+	/* generate different random seeds in multi-simulation */
+	if(bfirst)
+		sleep(delay*2);
   
+	noise = (*at->grand)();
+	
 	die_if (at->grand == NULL, "no gaussian RNG\n");
 
   /* update energy data, change at->beta */

@@ -859,6 +859,7 @@ size_t endn_fread(void *ptr, size_t size, size_t n, FILE *fp, int flip)
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
   #include <inttypes.h>
@@ -889,7 +890,7 @@ size_t endn_fread(void *ptr, size_t size, size_t n, FILE *fp, int flip)
 #define rnd0()    ((1.0/4294967296.0) * rand32()) /* double, [0, 1) */
 
 #define MTFILE    "MTSEED"  /* default file */
-#define MTSEED    5489UL    /* default seed */
+#define MTSEED    time(0)   //5489UL    /* default seed */
 STRCLS int mtsave(const char *fname);
 STRCLS int mtload(const char *fname, uint32_t seed);
 STRCLS uint32_t mtrand(void);

@@ -929,7 +929,7 @@ gmx_bool AdaptTemperingUpdate(at_t *at, gmx_large_int_t step,
 
   /* change temperature, and regularly write output files */
   if (SIMMASTER(cr)) {
-    if (AdaptTempering_Langevin(at, (llong_t)step, bFirstStep, bLastStep, bXTC, bCPT))
+    if (AdaptTempering_Langevin(at, (llong_t)step, bFirstStep, bLastStep, bXTC, bCPT, (cr->ms == NULL) ? 0: cr->ms->sim))
 			gmx_fatal(FARGS,"node %d, step: " llong_pfmt ", error during moving master\n", cr->nodeid, step);
   }
 	
