@@ -924,7 +924,7 @@ gmx_bool AdaptTemperingUpdate(at_t *at, gmx_large_int_t step,
 		at->Ea = enerd->term[F_EPOT];
 		
 		if(bMulTop)
-			at->Ea = at->Ea - extraE;
+			at->Ea = at->Ea + extraE;
 	}
 
   /* change temperature, and regularly write output files */

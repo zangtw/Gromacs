@@ -4,6 +4,10 @@
 #include "typedefs.h"
 #include "types/commrec.h"
 
+#ifndef BOLTZ
+#define BOLTZ  8.314511212e-3 /* Boltzmann constant */
+#endif
+
 #define MT_MAX_BLOCK 10 /* max block per topology */
 #define MT_MAX_ATOM_PER_MOL 100000 /* max atom # per molecule */
 #define MT_MAX_PDIHS 10000 /* max proper dihedrals */

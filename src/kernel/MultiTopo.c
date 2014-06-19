@@ -100,6 +100,9 @@ struct MulTop_LocalTops_t{
 #define DREC_Pind   dr->PDIH_start_index
 #define DREC_PIind  dr->PIDIH_start_index
 
+#define Beta2T(x) (1.0/(BOLTZ * x))
+#define T2Beta(x) (1.0/(BOLTZ * x))
+
 /*################################################
  * for debug use */
 
@@ -1043,6 +1046,54 @@ static real MulTop_Local_CalcFdihs(int nbonds, t_iatom atoms[], t_iparams params
 	return MulTop_Local_CalcRBdihs(nbonds, atoms, params, coord, pbc);
 }
 
+static real MulTop_Local_CalcWeight(mt_ltops_t *ltops, real T, int mode)
+{
+	static int count = 0;
+	static real t, t1m, t3m, b0;
+	real beta, beta3;
+	real weight;
+	
+	if(!count)
+	{
+		real bmax = T2Beta(ltops->Tmax);
+		real bref = T2Beta(ltops->Tref);
+
+		t = 0.5 * (bmax - bref);
+		b0 = 0.5 * (bmax + bref);
+		
+		if (t != 0)
+		{
+			t1m = 1.0 / t;
+			t3m = t1m * t1m * t1m;
+		}
+	}
+
+	if (T >= ltops->Tmax) /* weight = 1 after Tmax */
+		weight = 1;
+	else if (T <= ltops->Tref) /* weight = 0 before Tref */
+		weight = 0;
+	else
+	{
+		/* cases for T between Tref and Tmax */
+		if (t == 0)
+			gmx_fatal(FARGS, "Tref(%dK) == Tmax(%dK), which is not allowed by tempering!\n", ltops->Tref, ltops->Tmax);
+		else
+		{
+			beta = T2Beta(T) - b0;
+			beta3 = beta * beta * beta;
+
+			if (mode == 0) /* f(beta) */
+				weight = ltops->Wmax * (0.5 + 0.75 * beta * t1m - 0.25 * beta3 * t3m);
+			else  /* D(beta * f(beta)) */
+				weight = ltops->Wmax * (0.5 + 1.5 * beta * t1m - beta3 * t3m);
+		}
+	}
+
+	count++;
+
+	return weight;
+}
+
 /*static void update_lr_send(gmx_domdec_t *dd, MulTop_LocalRecords *lr)*/
 /*{*/
 /*int i,j,n;*/
@@ -1686,21 +1737,7 @@ void MulTop_Global_Bcast(mt_gtops_t *gtops, t_commrec *cr)
 
 real MulTop_Global_GetEnergy(mt_gtops_t *gtops, real v, t_commrec *cr)
 {
-	static real parameter;
-	static int count = 0;
-	
-	if(!count)
-	{
-		if(gtops->Tmax != gtops->Tref)
-			parameter = gtops->Wmax * gtops->Tref / (gtops->Tmax - gtops->Tref);
-		else gmx_fatal(FARGS, "This function cannot be called when Tmax==Tref!");
-	}
-	
 	gmx_sum(1, &v, cr);
-
-	v *= parameter;
-
-	count ++;
 
 	return v;
 }
@@ -1847,36 +1884,22 @@ void MulTop_Local_UpdateFinalTopologyParameters(mt_ltops_t *ltops, real *pot, re
 	gmx_localtop_t **tops = ltops->tops;
 	int i, j, k, ftype;
 	real weight[2];
-	static int count = 0;
-	static real parameter;
-	
-	if(!count)
-	{
-		if(ltops->Tmax != ltops->Tref)
-			parameter = ltops->Wmax / (ltops->Tmax - ltops->Tref);
-		else parameter = ltops->Wmax;
-	}
 
 	for(i=0; i<F_EPOT; i++)
 		pot[i] = 0;
 
 	weight[0] = 1;
-	if(T < ltops->Tref)
-		weight[1] = 0;
-	else if(ltops->Tmax != ltops->Tref)
-		weight[1] = parameter * (T - ltops->Tref);
-	else weight[1] = parameter;
+	weight[1] = MulTop_Local_CalcWeight(ltops, T, 0);
+	
 	if(weight[1] < 1e-8)
 		weight[1] = 0;
-
+	
 	for(j=0; j<tops[0]->idef.ntypes; j++)
 	{
 		ftype = top_final->idef.functype[j];
 
 		iparams_cal(&(top_final->idef.iparams[j]), &(tops[0]->idef.iparams[j]), &(tops[1]->idef.iparams[j]), ftype, weight, j, pot, ltops->dr);
 	}
-
-	count ++;
 }
 
 gmx_localtop_t *MulTop_Local_GetFinalTopology(mt_ltops_t *ltops)
@@ -1896,22 +1919,11 @@ real MulTop_Local_OnlyCalcAdditionalEnergy(mt_ltops_t *ltops, t_forcerec *fr, t_
 	int i;
 	t_pbc *pbc;
 	rvec *coord = state->x;
-	real weight;
-	static int count = 0;
-	static real parameter;
+	real weight, weight_vdw;
 	
-	if(!count)
-	{
-		if(ltops->Tmax != ltops->Tref)
-			parameter = ltops->Wmax * ltops->Tref / (ltops->Tmax - ltops->Tref);
-		else parameter = ltops->Wmax;
-	}
-	if(T < ltops->Tref)
-		weight = 0;
-	else weight = parameter;
-	if(weight < 1e-8)
-		weight = 0;
-	
+	weight_vdw = MulTop_Local_CalcWeight(ltops, T, 0);
+	weight = MulTop_Local_CalcWeight(ltops, T, 1);
+
 	if(fr->bMolPBC)
 	{
 		snew(pbc, 1);
@@ -1971,15 +1983,18 @@ real MulTop_Local_OnlyCalcAdditionalEnergy(mt_ltops_t *ltops, t_forcerec *fr, t_
     for (thread = 0; thread < fr->nthreads; thread++)
 			vi += pot[thread];
 
-		v += vi * weight;
+		v += vi;
 	}
 
-	v += enerd->term[F_VDW14];
+	if (weight_vdw != 0)
+		v += enerd->term[F_VDW14] / weight_vdw;
+	else if (enerd->term[F_VDW14] != 0)
+		gmx_fatal(FARGS, "error in F_VDW14 energy calculation!\n");
+
+	v *= weight;
 
 	if(pbc != NULL)
 		sfree(pbc);
-
-	count++;
 
 	return v;
 }
