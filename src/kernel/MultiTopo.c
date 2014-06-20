@@ -1083,11 +1083,13 @@ static real MulTop_Local_CalcWeight(mt_ltops_t *ltops, real T, int mode)
 			beta3 = beta * beta * beta;
 
 			if (mode == 0) /* f(beta) */
-				weight = ltops->Wmax * (0.5 + 0.75 * beta * t1m - 0.25 * beta3 * t3m);
+				weight = 0.5 + 0.75 * beta * t1m - 0.25 * beta3 * t3m;
 			else  /* D(beta * f(beta)) */
-				weight = ltops->Wmax * (0.5 + 1.5 * beta * t1m - beta3 * t3m);
+				weight = 0.5 + 1.5 * beta * t1m - beta3 * t3m;
 		}
 	}
+
+	weight *= ltops->Wmax;
 
 	count++;
 
