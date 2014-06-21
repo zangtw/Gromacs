@@ -387,8 +387,10 @@ at_t *AdaptTempering_MasterCreate(const char *fname, bool bCPT, double tmstep)
   
 	/* we only load previous data if it's continuation */
   if (at_loaddata(at, bCPT) != 0) {
-    AdaptTempering_Close(at);
-    return NULL;
+		fprintf(stderr, "Warning: This simulation is started from checkpoint, while some files are missing. Will assume no previous simulation data is available.\n");
+
+		/* AdaptTempering_Close(at);
+		return NULL; */
   }
 
 	return at;

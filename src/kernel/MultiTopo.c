@@ -618,7 +618,7 @@ static void MulTop_Global_SaveData(mt_gtops_t *gtops, int t, FILE *fp)
 		fprintf(fp, " ");
 	fprintf(fp, "#");
 	fprintf(fp, " %d", t);
-	fprintf(fp, "%d", natoms);
+	fprintf(fp, " %d", natoms);
 
 	/* write GREC_FA */
 	for(i=0; i<natoms; i++)
