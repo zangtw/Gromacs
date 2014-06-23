@@ -196,7 +196,7 @@ static void at_manifest(at_t *at, FILE *fp, int arrmax)
 * file `cfg', or if unavailable, from default values */
 static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
 {
-	char buf[100];
+	char buf1[100], buf2[100];
 	char suf[2];
 	suf[0] = at->suffix;
 	suf[1] = '\0';
@@ -242,16 +242,22 @@ static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
   at->grand = &grand0;
   
 	/* rng_file: file name of random number state */
-  at->rng_file = NULL;
-  if (cfgget(cfg, &at->rng_file, "rng_file", "%s"))
-		fprintf(stderr, "assuming default: at->rng_file = NULL, key: rng_file\n");
+  if (cfgget(cfg, &buf1, "rng_file", "%s"))
+	{
+		fprintf(stderr, "assuming default: at->rng_file = \"MTSEED\", key: rng_file\n");
+		strcpy(buf1, "MTSEED");
+	}
+	strcat(buf1, suf);
+  at->rng_file = ssdup(buf1);
 
   /* trace_file: name of trace file */
-	strcpy(buf, "TRACE");
-	strcat(buf, suf);
-  at->trace_file = ssdup(buf);
-  if (cfgget(cfg, &at->trace_file, "trace_file", "%s"))
+  if (cfgget(cfg, &buf2, "trace_file", "%s"))
+	{
 		fprintf(stderr, "assuming default: at->trace_file = \"TRACE\", key: trace_file\n");
+		strcpy(buf2, "TRACE");
+	}
+	strcat(buf2, suf);
+  at->trace_file = ssdup(buf2);
 
   /* log: logfile */
   at->log = NULL;
@@ -292,12 +298,13 @@ static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
 /* return a pointer of an initialized at_t
  * if possible, initial values are taken from configuration
  * file `cfg', otherwise default values are assumed */
-static at_t *AdaptTempering_OpenCfg(const char *cfgname, double tmstep)
+static at_t *AdaptTempering_OpenCfg(const char *cfgname, double tmstep, int suffix)
 {
   cfgdata_t *cfg;
   at_t *at;
 	bool bLoaded;
 	char *p;
+	int delay;
 
   /* open configuration file */
   die_if(!(cfg = cfgopen(cfgname)), "at_t: cannot open config. file %s.\n", cfgname);
@@ -306,13 +313,20 @@ static at_t *AdaptTempering_OpenCfg(const char *cfgname, double tmstep)
 	xnew(at, 1);
 
 	/* Get the file suffix first */
-	p = strstr(cfgname, ".cfg");
-	at->suffix = *(p-1);
+	die_if(suffix >= 10, "do not support # of simulations > 10 currently\n");
+	at->suffix = (char)(((int)'0') + suffix);
   
 	/* call low level function */
   die_if (!(bLoaded = at_cfgopen_low(at,cfg,tmstep)), "at_t: error while reading configuration file %s\n", cfgname);
 	
 	printf("Successfully loaded cfg data!\n");
+	
+	/* generate different random seeds in multi-simulation */
+	delay = suffix * 2;
+	sleep(delay);
+
+	/* load random number generator */
+	mtload(at->rng_file, 0);
 	
   /* close handle to configuration file */
   cfgclose(cfg);
@@ -374,12 +388,12 @@ void AdaptTempering_ForceChangeBeta(at_t *at, double newbeta)
 	AdaptTempering_UpdateTemperature(at);
 }
 
-at_t *AdaptTempering_MasterCreate(const char *fname, bool bCPT, double tmstep)
+at_t *AdaptTempering_MasterCreate(const char *fname, bool bCPT, double tmstep, int suffix)
 {
   at_t *at;
 
   /* this will also initialize settings for member objects such as at->mb */
-  at = AdaptTempering_OpenCfg((fname != NULL) ? fname : "at.cfg", tmstep); 
+  at = AdaptTempering_OpenCfg((fname != NULL) ? fname : "at.cfg", tmstep, suffix); 
 	die_if(at == NULL, "failed to load configuration file.\n"); 
 	
 	/* Make the initial temperature = T0 */
@@ -437,16 +451,12 @@ int AdaptTempering_DumpToFile(at_t *at, const char *fname, int arrmax)
   return 0;
 }
 
-int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, bool btr, bool bflush, int delay)
+int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, bool btr, bool bflush)
 {
   double invwf = 1.0, T1 = 0., T2 = 0., Eav = 0., ndlnwfdbeta;
   int ib, rep;
   double *varr = NULL;
 	double noise;
-
-	/* generate different random seeds in multi-simulation */
-	if(bfirst)
-		sleep(delay*2);
   
 	noise = (*at->grand)();
 	

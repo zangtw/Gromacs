@@ -851,7 +851,7 @@ at_t *AdaptTemperingInit(char *cfg_fnm, gmx_bool bCPT, t_inputrec *ir,
 
 	if (SIMMASTER(cr))
 	{
-		at = AdaptTempering_MasterCreate(cfg_fnm, bCPT, ir->delta_t);
+		at = AdaptTempering_MasterCreate(cfg_fnm, bCPT, ir->delta_t, (cr->ms == NULL) ? 0: cr->ms->sim);
 		if (at == NULL)
 			gmx_fatal(FARGS,"Error from node %d during initializing adaptive tempering. This maybe caused by a failure to allocate memory.\n", cr->sim_nodeid);
 	}
@@ -929,7 +929,7 @@ gmx_bool AdaptTemperingUpdate(at_t *at, gmx_large_int_t step,
 
   /* change temperature, and regularly write output files */
   if (SIMMASTER(cr)) {
-    if (AdaptTempering_Langevin(at, (llong_t)step, bFirstStep, bLastStep, bXTC, bCPT, (cr->ms == NULL) ? 0: cr->ms->sim))
+    if (AdaptTempering_Langevin(at, (llong_t)step, bFirstStep, bLastStep, bXTC, bCPT))
 			gmx_fatal(FARGS,"node %d, step: " llong_pfmt ", error during moving master\n", cr->nodeid, step);
   }
 	
