@@ -1139,7 +1139,7 @@ int mdrunner(gmx_hw_opt_t *hw_opt,
 			
 			MulTopNumber = MulTop_Global_GetInputFileName(&MulTopFileNames, "-addtop", nfile, fnm, cr);
 
-			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 350, 500, 6, cr);
+			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 293.3635302, 601.395237, 12, cr);
 			MulTop_Global_SetReferenceTopology(MulTopGlobal, mtop);
 
 			snew(states, MulTopNumber);

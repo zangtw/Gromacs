@@ -1051,45 +1051,56 @@ static real MulTop_Local_CalcWeight(mt_ltops_t *ltops, real T, int mode)
 	static int count = 0;
 	static real t, t1m, t3m, b0;
 	real beta, beta3;
-	real weight;
+	real weight, weight0, weight1;
+
+	if (ltops->Tmax = ltops->Tref)  /* constant temperature */
+		return ltops->Wmax;
 	
 	if(!count)
 	{
-		real bmax = T2Beta(ltops->Tmax);
-		real bref = T2Beta(ltops->Tref);
+		weight0 = ltops->Wmax / (ltops->Tmax - ltops->Tref);
+		weight1 = (0.0 - 1.0) * ltops->Wmax * ltops->Tref / (ltops->Tmax - ltops->Tref);
 
-		t = 0.5 * (bmax - bref);
-		b0 = 0.5 * (bmax + bref);
-		
-		if (t != 0)
-		{
-			t1m = 1.0 / t;
-			t3m = t1m * t1m * t1m;
-		}
+		//real bmax = T2Beta(ltops->Tmax);
+		//real bref = T2Beta(ltops->Tref);
+
+		//t = 0.5 * (bmax - bref);
+		//b0 = 0.5 * (bmax + bref);
+		//
+		//if (t != 0)
+		//{
+		//	t1m = 1.0 / t;
+		//	t3m = t1m * t1m * t1m;
+		//}
 	}
 
-	if (T >= ltops->Tmax) /* weight = 1 after Tmax */
-		weight = 1;
-	else if (T <= ltops->Tref) /* weight = 0 before Tref */
-		weight = 0;
+	if(mode == 0)
+		weight = (T - ltops->Tref) * weight0;
 	else
-	{
-		/* cases for T between Tref and Tmax */
-		if (t == 0)
-			gmx_fatal(FARGS, "Tref(%dK) == Tmax(%dK), which is not allowed by tempering!\n", ltops->Tref, ltops->Tmax);
-		else
-		{
-			beta = T2Beta(T) - b0;
-			beta3 = beta * beta * beta;
+		weight = weight1;
 
-			if (mode == 0) /* f(beta) */
-				weight = 0.5 + 0.75 * beta * t1m - 0.25 * beta3 * t3m;
-			else  /* D(beta * f(beta)) */
-				weight = 0.5 + 1.5 * beta * t1m - beta3 * t3m;
-		}
-	}
+	//if (T >= ltops->Tmax) /* weight = 1 after Tmax */
+	//	weight = 1;
+	//else if (T <= ltops->Tref) /* weight = 0 before Tref */
+	//	weight = 0;
+	//else
+	//{
+	//	/* cases for T between Tref and Tmax */
+	//	if (t == 0)
+	//		gmx_fatal(FARGS, "Tref(%dK) == Tmax(%dK), which is not allowed by tempering!\n", ltops->Tref, ltops->Tmax);
+	//	else
+	//	{
+	//		beta = T2Beta(T) - b0;
+	//		beta3 = beta * beta * beta;
 
-	weight *= ltops->Wmax;
+	//		if (mode == 0) /* f(beta) */
+	//			weight = 0.5 + 0.75 * beta * t1m - 0.25 * beta3 * t3m;
+	//		else  /* D(beta * f(beta)) */
+	//			weight = 0.5 + 1.5 * beta * t1m - beta3 * t3m;
+	//	}
+	//}
+
+	//weight *= ltops->Wmax;
 
 	count++;
 
