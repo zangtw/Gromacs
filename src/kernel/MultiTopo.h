@@ -27,11 +27,8 @@ void MulTop_Global_SetReferenceTopology(mt_gtops_t *gtops, gmx_mtop_t *mtop);
 /* Get non-reference topologies from states */
 void MulTop_Global_GetOtherTopologies(mt_gtops_t *gtops, char **files, t_commrec *cr, t_state **states);
 
-/* Load gtops->gr from file. */
-void MulTop_Global_LoadData(mt_gtops_t *gtops);
-
-/* Calculate gtops->gr based on the current states. */
-void MulTop_Global_CalcData(mt_gtops_t *gtops, t_state **states_tot, t_state *state_ref);
+/* If the file with name=gr->file_nm exists, load gtops->gr from file; else calculate gtops->gr based on the current states. */
+void MulTop_Global_ObtainData(mt_gtops_t *gtops, t_state **states_tot, t_state *state_ref);
 
 /* Reconstruct all topologies with a common format. After that, save and clean gtops->gr data. */ 
 void MulTop_Global_RefreshForceFieldParameters(mt_gtops_t *gtops);

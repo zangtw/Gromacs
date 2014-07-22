@@ -1149,10 +1149,7 @@ int mdrunner(gmx_hw_opt_t *hw_opt,
 			
 			if(MASTER(cr))
 			{
-				if(Flags & MD_STARTFROMCPT)
-					MulTop_Global_LoadData(MulTopGlobal);
-				else
-					MulTop_Global_CalcData(MulTopGlobal, states, state);
+				MulTop_Global_ObtainData(MulTopGlobal, states, state);
 
 				MulTop_Global_RefreshForceFieldParameters(MulTopGlobal);
 			}

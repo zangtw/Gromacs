@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "typedefs.h"
 #include "gmx_fatal.h"
 #include "physics.h"
@@ -794,7 +795,7 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
        	}
 
     	  if(!AtombFinded)
-    	  	gmx_fatal(FARGS,"cannot find the corresponding atom '%s' of the %dth molecule in block '%s' in topology %d",anmi[0], mi, mnmi[0],t);
+    	  	gmx_fatal(FARGS,"cannot find the corresponding atom '%s'(index=%d in your gro file) of the %dth molecule in block '%s' in topology %d.\n",anmi, mtopi->mols.index[bloci+mi]+ai+1, mi, mnmi[0],t);
 
     	  GREC_FA[t][mtopi->mols.index[bloci+mi]+ai] = mtop0->mols.index[bloc0+m0]+a0;
       }
@@ -810,6 +811,85 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
 	sfree(blockdone0);
 
 	MulTop_Global_SaveData(gtops, t, fp);
+}
+
+static void MulTop_Global_CalcData(mt_gtops_t *gtops, t_state **states_tot, t_state *state_ref)
+{
+	int ntop = gtops->ntop;
+	t_state *state_tar;
+	int i;
+	FILE *fp;
+		
+	MulTop_Global_OpenFile(gtops, &fp, 1);
+
+	for(i=0; i<ntop; i++)
+	{
+		state_tar = states_tot[i]; /* state of the (i)th topology */
+	
+		MulTop_Global_CalcDataForEachTopology(gtops, i, state_tar, state_ref, fp);
+	}
+
+	fclose(fp);
+}
+
+static void MulTop_Global_LoadData(mt_gtops_t *gtops)
+{
+	int natoms;
+	int ntop = gtops->ntop;
+	int i,j,k,t,index;
+	char header;
+	int header_index, header_natoms;
+	MulTop_GlobalRecords *gr = gtops->gr;
+	FILE *fp;
+
+	MulTop_Global_OpenFile(gtops, &fp, 0);
+
+	for(t=0; t<ntop; t++)
+	{
+		natoms = gtops->mtops[t]->natoms;
+		srenew(GREC_FA[t], natoms);	
+
+		/* Read header information */
+		if(t!=0)
+			fscanf(fp, "%c", &header);
+		fscanf(fp, "%c", &header);
+		if(header != '#')
+			gmx_fatal(FARGS,"Error reading record files: cannot find locations for topology %d in file.", t);
+	
+		fscanf(fp, "%d", &header_index);
+		if(header_index != t)
+			gmx_fatal(FARGS,"Error reading record files: topology index in file is not consistent with the current topology (index = %d).",t);
+
+		fscanf(fp, "%d", &header_natoms);
+		if(header_natoms != natoms)
+			gmx_fatal(FARGS,"Error reading record files: number of atoms in file is not consistent with one in topology %d which is %d.",t, natoms);
+
+		/* Read GREC_FA information */
+		for(i=0; i<natoms; i++)
+		{
+			if(feof(fp))
+				gmx_fatal(FARGS,"Error reading record files: number of atoms in file is not consistent with one in topology %d which is %d.",t, natoms);
+		
+			fscanf(fp, "%d", &index); 
+			*(GREC_FA[t]+i) = index - 1; /* index is the one in *.gro so we need to reduce it by one. */
+		}
+		
+		/* Read GREC_FB information after the last topology is processed */
+		if(t == ntop - 1)
+		{
+			for(i=0; i< ntop; i++)
+			for(j=0; j< MT_MAX_BLOCK; j++)
+				for(k=0; k< ntop; k++)
+				{
+					if(feof(fp))
+						gmx_fatal(FARGS,"Error reading record files: file content is not consistent with molecule block information in topology %d.",i);
+
+					fscanf(fp, "%d", GREC_FB[i][j]+k);
+				}
+		}
+	}
+
+	fclose(fp);
 }
 
 /* Currently not useful */
@@ -1049,11 +1129,12 @@ static real MulTop_Local_CalcFdihs(int nbonds, t_iatom atoms[], t_iparams params
 static real MulTop_Local_CalcWeight(mt_ltops_t *ltops, real T, int mode)
 {
 	static int count = 0;
-	static real t, t1m, t3m, b0;
-	real beta, beta3;
-	real weight, weight0, weight1;
+	static real weight0 = 0, weight1 = 0;
+	real weight;
+	//static real t, t1m, t3m, b0;
+	//real beta, beta3;
 
-	if (ltops->Tmax = ltops->Tref)  /* constant temperature */
+	if (ltops->Tmax == ltops->Tref)  /* constant temperature */
 		return ltops->Wmax;
 	
 	if(!count)
@@ -1299,83 +1380,12 @@ void MulTop_Global_GetOtherTopologies(mt_gtops_t *gtops, char **files, t_commrec
 	}
 }
 
-void MulTop_Global_LoadData(mt_gtops_t *gtops)
+void MulTop_Global_ObtainData(mt_gtops_t *gtops, t_state **states_tot, t_state *state_ref)
 {
-	int natoms;
-	int ntop = gtops->ntop;
-	int i,j,k,t,index;
-	char header;
-	int header_index, header_natoms;
-	MulTop_GlobalRecords *gr = gtops->gr;
-	FILE *fp;
-
-	MulTop_Global_OpenFile(gtops, &fp, 0);
-
-	for(t=0; t<ntop; t++)
-	{
-		natoms = gtops->mtops[t]->natoms;
-		srenew(GREC_FA[t], natoms);	
-
-		/* Read header information */
-		if(t!=0)
-			fscanf(fp, "%c", &header);
-		fscanf(fp, "%c", &header);
-		if(header != '#')
-			gmx_fatal(FARGS,"Error reading record files: cannot find locations for topology %d in file.", t);
-	
-		fscanf(fp, "%d", &header_index);
-		if(header_index != t)
-			gmx_fatal(FARGS,"Error reading record files: topology index in file is not consistent with the current topology (index = %d).",t);
-
-		fscanf(fp, "%d", &header_natoms);
-		if(header_natoms != natoms)
-			gmx_fatal(FARGS,"Error reading record files: number of atoms in file is not consistent with one in topology %d which is %d.",t, natoms);
-
-		/* Read GREC_FA information */
-		for(i=0; i<natoms; i++)
-		{
-			if(feof(fp))
-				gmx_fatal(FARGS,"Error reading record files: number of atoms in file is not consistent with one in topology %d which is %d.",t, natoms);
-		
-			fscanf(fp, "%d", &index); 
-			*(GREC_FA[t]+i) = index - 1; /* index is the one in *.gro so we need to reduce it by one. */
-		}
-		
-		/* Read GREC_FB information after the last topology is processed */
-		if(t == ntop - 1)
-		{
-			for(i=0; i< ntop; i++)
-			for(j=0; j< MT_MAX_BLOCK; j++)
-				for(k=0; k< ntop; k++)
-				{
-					if(feof(fp))
-						gmx_fatal(FARGS,"Error reading record files: file content is not consistent with molecule block information in topology %d.",i);
-
-					fscanf(fp, "%d", GREC_FB[i][j]+k);
-				}
-		}
-	}
-
-	fclose(fp);
-}
-
-void MulTop_Global_CalcData(mt_gtops_t *gtops, t_state **states_tot, t_state *state_ref)
-{
-	int ntop = gtops->ntop;
-	FILE *fp;
-	t_state *state_tar;
-	int i;
-
-	MulTop_Global_OpenFile(gtops, &fp, 1);
-
-	for(i=0; i<ntop; i++)
-	{
-		state_tar = states_tot[i]; /* state of the (i)th topology */
-	
-		MulTop_Global_CalcDataForEachTopology(gtops, i, state_tar, state_ref, fp);
-	}
-
-	fclose(fp);
+	if(access(gtops->gr->file_nm, R_OK) == -1) /* file does not exist */
+		MulTop_Global_CalcData(gtops, states_tot, state_ref);
+	else	
+		MulTop_Global_LoadData(gtops);
 }
 
 void MulTop_Global_RefreshForceFieldParameters(mt_gtops_t *gtops)
