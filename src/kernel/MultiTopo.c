@@ -747,7 +747,7 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
        			continue;
 
        		if(distance2(state_ref->x[mtop0->mols.index[bloc0+m0]+a0],
-       								 state_tar->x[mtopi->mols.index[bloci+mi]]) > 1e-6)
+       								 state_tar->x[mtopi->mols.index[bloci+mi]]) > 5e-6)
        			continue;
 
     	    AtombFinded = 1;
@@ -787,7 +787,7 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
 						continue;
 
 					if(distance2(state_ref->x[mtop0->mols.index[bloc0+m0]+a0],
-						  				 state_tar->x[mtopi->mols.index[bloci+mi]+ai]) > 1e-6)
+						  				 state_tar->x[mtopi->mols.index[bloci+mi]+ai]) > 5e-6)
 						continue;
 
 					AtombFinded = 1;
