@@ -1165,6 +1165,41 @@ int mdrunner(gmx_hw_opt_t *hw_opt,
         sfree(states[i]);
       sfree(states);
     }
+		
+		/* Initialize the multiple topologies. */
+		if(bMulTop)
+		{
+			char **MulTopFileNames;
+			t_state **states;
+			
+			MulTopNumber = MulTop_Global_GetInputFileName(&MulTopFileNames, "-addtop", nfile, fnm, cr);
+
+			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 293.3635302, 501.162697, 12, cr);
+			MulTop_Global_SetReferenceTopology(MulTopGlobal, mtop);
+
+			snew(states, MulTopNumber);
+			states[0] = state; for(i=1; i<MulTopNumber; i++)
+				snew(states[i],1);
+			MulTop_Global_GetOtherTopologies(MulTopGlobal, MulTopFileNames, cr, states);
+			
+			if(MASTER(cr))
+			{
+				MulTop_Global_ObtainData(MulTopGlobal, states, state);
+
+				MulTop_Global_RefreshForceFieldParameters(MulTopGlobal);
+			}
+
+			/* just for debug */
+			/*MulTopGlobal->Tref = 450;*/
+			/*MulTopGlobal->Tmax = 500;*/
+			/*MulTopGlobal->Wmax = 1;*/
+
+			MulTop_Global_Bcast(MulTopGlobal, cr);
+
+			for(i=1; i<MulTopNumber; i++)
+				sfree(states[i]);
+			sfree(states);
+		}
 
     /* A parallel command line option consistency check that we can
        only do after any threads have started. */

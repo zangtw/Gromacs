@@ -10,7 +10,7 @@
 
 #define MT_MAX_BLOCK 10 /* max block per topology */
 #define MT_MAX_ATOM_PER_MOL 100000 /* max atom # per molecule */
-#define MT_MAX_PDIHS 10000 /* max proper dihedrals */
+#define MT_MAX_PDIHS 50000 /* max proper dihedrals */
 
 typedef struct MulTop_GlobalTops_t mt_gtops_t;
 typedef struct MulTop_LocalTops_t  mt_ltops_t;
