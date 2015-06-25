@@ -771,10 +771,10 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
       for(ai = 1; ai < mtopi->moltype[bi].atoms.nr; ai++)
       {
         resi = mtopi->moltype[bi].atoms.atom[ai].resind;
-         anmi = *(mtopi->moltype[bi].atoms.atomname[ai]);
+        anmi = *(mtopi->moltype[bi].atoms.atomname[ai]);
 
-         gmx_bool AtombFinded = 0;
-         for(a0 = 0; a0 < mtop0->moltype[b0].atoms.nr; a0++)
+        gmx_bool AtombFinded = 0;
+        for(a0 = 0; a0 < mtop0->moltype[b0].atoms.nr; a0++)
         {
           res0 = mtop0->moltype[b0].atoms.atom[a0].resind;
           anm0 = *(mtop0->moltype[b0].atoms.atomname[a0]);
@@ -792,7 +792,7 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
 
           AtombFinded = 1;
           break;
-         }
+        }
 
         if(!AtombFinded)
           gmx_fatal(FARGS,"cannot find the corresponding atom '%s'(index=%d in your gro file) of the %dth molecule in block '%s' in topology %d.\n",anmi, mtopi->mols.index[bloci+mi]+ai+1, mi, mnmi[0],t);
