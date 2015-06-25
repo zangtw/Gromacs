@@ -747,7 +747,7 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
              continue;
 
            if(distance2(state_ref->x[mtop0->mols.index[bloc0+m0]+a0],
-       								 state_tar->x[mtopi->mols.index[bloci+mi]]) > 5e-6)
+                        state_tar->x[mtopi->mols.index[bloci+mi]]) > 5e-6)
              continue;
 
            AtombFinded = 1;
@@ -770,34 +770,34 @@ static void MulTop_Global_CalcDataForEachTopology(mt_gtops_t *gtops, int t, t_st
       /* Now link other atoms in current molecule */
       for(ai = 1; ai < mtopi->moltype[bi].atoms.nr; ai++)
       {
-      	resi = mtopi->moltype[bi].atoms.atom[ai].resind;
-       	anmi = *(mtopi->moltype[bi].atoms.atomname[ai]);
+        resi = mtopi->moltype[bi].atoms.atom[ai].resind;
+         anmi = *(mtopi->moltype[bi].atoms.atomname[ai]);
 
-       	gmx_bool AtombFinded = 0;
-       	for(a0 = 0; a0 < mtop0->moltype[b0].atoms.nr; a0++)
-				{
-					res0 = mtop0->moltype[b0].atoms.atom[a0].resind;
-					anm0 = *(mtop0->moltype[b0].atoms.atomname[a0]);
+         gmx_bool AtombFinded = 0;
+         for(a0 = 0; a0 < mtop0->moltype[b0].atoms.nr; a0++)
+        {
+          res0 = mtop0->moltype[b0].atoms.atom[a0].resind;
+          anm0 = *(mtop0->moltype[b0].atoms.atomname[a0]);
 
-					//if (res0!=resi)
-						//continue;
-					if (*anm0 != *anmi)
-						continue;
-					if(*(anm0+1) != *(anmi+1))
-						continue;
+          //if (res0!=resi)
+            //continue;
+          if (*anm0 != *anmi)
+            continue;
+          if(*(anm0+1) != *(anmi+1))
+            continue;
 
-					if(distance2(state_ref->x[mtop0->mols.index[bloc0+m0]+a0],
-						  				 state_tar->x[mtopi->mols.index[bloci+mi]+ai]) > 5e-6)
-						continue;
+          if(distance2(state_ref->x[mtop0->mols.index[bloc0+m0]+a0],
+                       state_tar->x[mtopi->mols.index[bloci+mi]+ai]) > 5e-6)
+            continue;
 
-					AtombFinded = 1;
-					break;
-       	}
+          AtombFinded = 1;
+          break;
+         }
 
-    	  if(!AtombFinded)
-    	  	gmx_fatal(FARGS,"cannot find the corresponding atom '%s'(index=%d in your gro file) of the %dth molecule in block '%s' in topology %d.\n",anmi, mtopi->mols.index[bloci+mi]+ai+1, mi, mnmi[0],t);
+        if(!AtombFinded)
+          gmx_fatal(FARGS,"cannot find the corresponding atom '%s'(index=%d in your gro file) of the %dth molecule in block '%s' in topology %d.\n",anmi, mtopi->mols.index[bloci+mi]+ai+1, mi, mnmi[0],t);
 
-    	  GREC_FA[t][mtopi->mols.index[bloci+mi]+ai] = mtop0->mols.index[bloc0+m0]+a0;
+        GREC_FA[t][mtopi->mols.index[bloci+mi]+ai] = mtop0->mols.index[bloc0+m0]+a0;
       }
 
       moldone0[m0] = 1;
