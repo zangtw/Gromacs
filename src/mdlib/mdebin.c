@@ -233,10 +233,10 @@ t_mdebin *init_mdebin(ener_file_t       fp_ene,
         {
             md->bEner[i] = b14;
         }
-				else if (i == F_VDW14)
-				{
-						md->bEner[i] = b14;
-				}
+        else if (i == F_VDW14)
+        {
+            md->bEner[i] = b14;
+        }
         else if (i == F_COUL14)
         {
             md->bEner[i] = b14;

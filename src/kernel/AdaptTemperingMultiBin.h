@@ -60,9 +60,9 @@ typedef struct {
   double    cvshiftmax;       /* maximal fraction for shift energy fluct. if cv is monotonic, it should be 0.0, for ising model, it can restrain the magnitude */
   /* parameter for temperature distribution perference */
   double    ens_exp;  /* ensemble exponent of beta */
-	int       mode;         /* mode 0: disable 1: Gaussian 2:exponential */
-	double    beta0;        /* beta0 in Gaussian distribution */
-	double    invsigma2;    /* 1/sigma^2 in Gaussian distribution */
+  int       mode;         /* mode 0: disable 1: Gaussian 2:exponential */
+  double    beta0;        /* beta0 in Gaussian distribution */
+  double    invsigma2;    /* 1/sigma^2 in Gaussian distribution */
   double    c;            /* c in exponential distribution */
   double    *ens_w;   /* array of ensemble weights at bin boundaries */
   /* shrink parameters */
@@ -133,7 +133,7 @@ typedef struct {
  * calculate the new bet after integrating Langevin equation,
  * dt is the time step for kT or 1/beta; ndlnwfdbeta = -d(lnwf)/d(beta) */
 double mb_move(mb_t *mb, double erg, double bet, int ib,
-		      double ndlnwfdbeta, double noise, double *ergt);
+          double ndlnwfdbeta, double noise, double *ergt);
 
 /* write various averages to ze_file */
 int mb_wze(mb_t *mb, const char *fname);
@@ -146,7 +146,7 @@ double mb_ensinvwf(mb_t *mb, double beta, double *f, double *ndfdbeta);
 
 /* add energy and bet */
 void mb_add(mb_t *mb, double e, const double v[], double bet,
-	    int *pib, double *pinvwf, double *ndlnwfdbeta);
+      int *pib, double *pinvwf, double *ndlnwfdbeta);
 
 /* compute the average energy Et at current bin ib */
 double mb_calc_et(mb_t *mb, int ib, int flags);

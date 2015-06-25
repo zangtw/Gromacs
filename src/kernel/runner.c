@@ -904,7 +904,7 @@ typedef struct {
     int      cutoff_scheme; /* The cutoff scheme from inputrec_t */
     gmx_bool bUseGPU;       /* Use GPU or GPU emulation          */
 } master_inf_t;
-		
+
 /* Below are variables for multiple topologies */
 mt_gtops_t *MulTopGlobal;  
 
@@ -953,10 +953,10 @@ int mdrunner(gmx_hw_opt_t *hw_opt,
     gmx_membed_t    membed       = NULL;
     gmx_hw_info_t  *hwinfo       = NULL;
     master_inf_t    minf         = {-1, FALSE};
-		
-		/* Below are variables for multiple topologies */
-		gmx_bool bMulTop = Flags & MD_MULTOP;
-		int MulTopNumber;
+    
+    /* Below are variables for multiple topologies */
+    gmx_bool bMulTop = Flags & MD_MULTOP;
+    int MulTopNumber;
 
     /* CAUTION: threads may be started later on in this function, so
        cr doesn't reflect the final parallel state right now */
@@ -1130,41 +1130,41 @@ int mdrunner(gmx_hw_opt_t *hw_opt,
 
     /* now make sure the state is initialized and propagated */
     set_state_entries(state, inputrec, cr->nnodes);
-		
-		/* Initialize the multiple topologies. */
-		if(bMulTop)
-		{
-			char **MulTopFileNames;
-			t_state **states;
-			
-			MulTopNumber = MulTop_Global_GetInputFileName(&MulTopFileNames, "-addtop", nfile, fnm, cr);
+    
+    /* Initialize the multiple topologies. */
+    if(bMulTop)
+    {
+      char **MulTopFileNames;
+      t_state **states;
+      
+      MulTopNumber = MulTop_Global_GetInputFileName(&MulTopFileNames, "-addtop", nfile, fnm, cr);
 
-			MulTopGlobal = MulTop_Global_Init(MulTopNumber, 293.3635302, 601.395237, 12, cr);
-			MulTop_Global_SetReferenceTopology(MulTopGlobal, mtop);
+      MulTopGlobal = MulTop_Global_Init(MulTopNumber, 293.3635302, 601.395237, 12, cr);
+      MulTop_Global_SetReferenceTopology(MulTopGlobal, mtop);
 
-			snew(states, MulTopNumber);
-			states[0] = state; for(i=1; i<MulTopNumber; i++)
-				snew(states[i],1);
-			MulTop_Global_GetOtherTopologies(MulTopGlobal, MulTopFileNames, cr, states);
-			
-			if(MASTER(cr))
-			{
-				MulTop_Global_ObtainData(MulTopGlobal, states, state);
+      snew(states, MulTopNumber);
+      states[0] = state; for(i=1; i<MulTopNumber; i++)
+        snew(states[i],1);
+      MulTop_Global_GetOtherTopologies(MulTopGlobal, MulTopFileNames, cr, states);
+      
+      if(MASTER(cr))
+      {
+        MulTop_Global_ObtainData(MulTopGlobal, states, state);
 
-				MulTop_Global_RefreshForceFieldParameters(MulTopGlobal);
-			}
+        MulTop_Global_RefreshForceFieldParameters(MulTopGlobal);
+      }
 
-			/* just for debug */
-			/*MulTopGlobal->Tref = 450;*/
-			/*MulTopGlobal->Tmax = 500;*/
-			/*MulTopGlobal->Wmax = 1;*/
+      /* just for debug */
+      /*MulTopGlobal->Tref = 450;*/
+      /*MulTopGlobal->Tmax = 500;*/
+      /*MulTopGlobal->Wmax = 1;*/
 
-			MulTop_Global_Bcast(MulTopGlobal, cr);
+      MulTop_Global_Bcast(MulTopGlobal, cr);
 
-			for(i=1; i<MulTopNumber; i++)
-				sfree(states[i]);
-			sfree(states);
-		}
+      for(i=1; i<MulTopNumber; i++)
+        sfree(states[i]);
+      sfree(states);
+    }
 
     /* A parallel command line option consistency check that we can
        only do after any threads have started. */
@@ -1331,7 +1331,7 @@ int mdrunner(gmx_hw_opt_t *hw_opt,
         /* Open input and output files, allocate space for ED data structure */
         ed = ed_open(mtop->natoms, &state->edsamstate, nfile, fnm, Flags, oenv, cr);
     }
-		
+    
     if (PAR(cr) && !((Flags & MD_PARTDEC) ||
                      EI_TPI(inputrec->eI) ||
                      inputrec->eI == eiNM))

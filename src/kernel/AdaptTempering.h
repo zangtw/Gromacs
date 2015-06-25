@@ -39,28 +39,28 @@ struct AdaptTemperingType{
   /*------Temperature bins-------------------------*/
   double    bmin;     // minimal beta 
   double    bmax;     // maximal beta
-	double    beta;     // current beta 
+  double    beta;     // current beta 
   double    T0;       // thermostat temperature 
-	int			  index;    // index of current beta
+  int        index;    // index of current beta
 
   /*-----Integration of MD and Langevin related ---*/
   int       mvreps;    // number of repeating Langevin eq 
   double    tmstep;    // MD integration step
-	int       nsttemp;   // interval of tempering, 0: disable, -1: only when doing neighbor searching
+  int       nsttemp;   // interval of tempering, 0: disable, -1: only when doing neighbor searching
   int       nsttrace;  // interval of writing trace file, 0: disable, -1: only when doing neighbor searching
-	double    (*grand)(void);  /* function pointer to a gaussian random number genrator */
+  double    (*grand)(void);  /* function pointer to a gaussian random number genrator */
 
   /*------Files------------------------------------*/
   char      *rng_file;    // random number file name
   char      *trace_file;  // trace file name
   logfile_t *log;         // log file
-	char      suffix;       // file suffix
+  char      suffix;       // file suffix
 
   /*------Combined Hamiltonian:
     H = kappa* H0 + epsilon * H1
     kappa = 1-(T-Tref)*(1-kappa0)/(Tmax-Tref) if T>Tref; kappa=1 if T<Tref
     epsilon= epsilon0*(T-Tref)/(Tmax-Tref) if T>Tref; epsilon=0 if T<Tref */
-  bool      bTH;	
+  bool      bTH;  
   double    TH_Tref;
   double    *kappa, *epsilon;
   double    kappa0, epsilon0;
@@ -68,7 +68,7 @@ struct AdaptTemperingType{
   /*-----Multiple bin estimator of thermodynamical quantities------*/
   mb_t      *mb;      // multiple-bin estimator
 
-	/*-----Thermodynamical staffs------------------------------------*/
+  /*-----Thermodynamical staffs------------------------------------*/
   double    Ea;       // total potential energy
 
   /*-----Parallel staffs-------------------------------------------*/

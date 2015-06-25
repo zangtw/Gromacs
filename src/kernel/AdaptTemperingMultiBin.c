@@ -585,7 +585,7 @@ static void mb_calc_ehat(mb_t *mb)
 /* mb operations, non-static part*/
 
 double mb_move(mb_t *mb, double erg, double bet, int ib,
-		      double ndlnwfdbeta, double noise, double *ergt)
+          double ndlnwfdbeta, double noise, double *ergt)
 {
   double dkt, dktmax, kt1, kt2, dt, bet2, rndmag;
 
@@ -595,10 +595,10 @@ double mb_move(mb_t *mb, double erg, double bet, int ib,
   kt1 = 1.0/bet;
   rndmag = kt1*sqrt(2.0*dt);
   
-	/* Langevin integration */
-	dkt  = (erg - *ergt + ndlnwfdbeta)*dt + rndmag * noise;
+  /* Langevin integration */
+  dkt  = (erg - *ergt + ndlnwfdbeta)*dt + rndmag * noise;
   
-	if (dkt > dktmax) {
+  if (dkt > dktmax) {
     dkt = dktmax;
     mb->lgv_rej += 1.0;
   } else if (dkt < -dktmax) {
@@ -609,9 +609,9 @@ double mb_move(mb_t *mb, double erg, double bet, int ib,
   kt2 = kt1 + dkt;
   bet2 = 1.0 / kt2;
   mb->beta = (bet2 < mb->bmax && bet2 > mb->bmin) ? bet2 : bet;
-	mb->beta = (mb->beta >= mb->bmax - 1e-5) ? (mb->bmax - 1e-5) : mb->beta;
-	mb->beta = (mb->beta <= mb->bmin + 1e-5) ? (mb->bmin + 1e-5) : mb->beta;
-	return mb->beta;
+  mb->beta = (mb->beta >= mb->bmax - 1e-5) ? (mb->bmax - 1e-5) : mb->beta;
+  mb->beta = (mb->beta <= mb->bmin + 1e-5) ? (mb->bmin + 1e-5) : mb->beta;
+  return mb->beta;
 }
 
 int mb_wze(mb_t *mb, const char *fname)
@@ -713,26 +713,26 @@ double mb_ensinvwf(mb_t *mb, double beta, double *pf, double *pndfdbeta)
 {
   const double eps = 1e-5;
   double dif, invwf, f, ndfdbeta;
-	int ifac;
+  int ifac;
 
-	/* invwf: 1/w(beta)/f(beta);
-	 * f: f(beta);
-	 * ndfdbeta: -df(beta)/dbeta;
-	 */
+  /* invwf: 1/w(beta)/f(beta);
+   * f: f(beta);
+   * ndfdbeta: -df(beta)/dbeta;
+   */
 
-	if(mb->mode == 1)
-	{
+  if(mb->mode == 1)
+  {
     dif    = beta - mb->beta0;
     f      = exp(-0.5 * (dif * dif) * mb->invsigma2);
     ndfdbeta = f * dif * mb->invsigma2;
   }
-	else if(mb->mode ==2)
-	{
+  else if(mb->mode ==2)
+  {
     f      = exp(-beta * mb->c);
     ndfdbeta = f * mb->c;
-	}
-	else 
-	{
+  }
+  else 
+  {
     f = 1.0;
     ndfdbeta = 0.0;
   }
@@ -749,7 +749,7 @@ double mb_ensinvwf(mb_t *mb, double beta, double *pf, double *pndfdbeta)
 
   die_if (invwf > 1e6 || invwf < 1e-6, "bad invwf=%g, beta=%g\n", invwf, beta);
   
-	return invwf;
+  return invwf;
 }
 
 void mb_add(mb_t *mb, double e, const double v[], double bet,
@@ -764,12 +764,12 @@ void mb_add(mb_t *mb, double e, const double v[], double bet,
   mb->vis[j] += 1.0;
   mb->totvis += 1.0;
 
-	/* f: f(beta);
-	 * ndfdbeta: -df/dbeta;
-	 * invwf: 1/w(beta)/f(beta);
-	 * ndlnwfdbeta: -dln(w(beta)f(beta))/dbeta;
-	 * ginvwf: adaptive weight = ampf * invwf;
-	 */
+  /* f: f(beta);
+   * ndfdbeta: -df/dbeta;
+   * invwf: 1/w(beta)/f(beta);
+   * ndlnwfdbeta: -dln(w(beta)f(beta))/dbeta;
+   * ginvwf: adaptive weight = ampf * invwf;
+   */
   *pinvwf = invwf = mb_ensinvwf(mb, bet, &f, &ndfdbeta); /* get weight */
   *ndlnwfdbeta = mb->ens_exp/bet + ndfdbeta/f;
   sm_addE(mb->sums + j, invwf, e, bCv);
@@ -833,10 +833,10 @@ int mb_write(mb_t *mb)
 int mb_cfgopen_low(mb_t *mb, cfgdata_t *cfg, double bmin, double bmax, char suffix)
 {
   int i;
-	char buf[100];
-	char suf[2];
-	suf[0] = suffix;
-	suf[1] = '\0';
+  char buf[100];
+  char suf[2];
+  suf[0] = suffix;
+  suf[1] = '\0';
 
   if (mb == NULL) {
     fprintf(stderr, "null pointer to mb_t\n");
@@ -880,15 +880,15 @@ int mb_cfgopen_low(mb_t *mb, cfgdata_t *cfg, double bmin, double bmax, char suff
   mb->bmax = mb->bmin + mb->bdel * mb->n;
   /* beta: current value of beta */
 
-	//just for debug use
-	mb->beta = mb->bmax;
-	/*mb->beta = mb->bmin;*/
-	/*mb->beta = 0.5 * mb->bmin + 0.5 * mb->bmax;*/
+  //just for debug use
+  mb->beta = mb->bmax;
+  /*mb->beta = mb->bmin;*/
+  /*mb->beta = 0.5 * mb->bmin + 0.5 * mb->bmax;*/
   
-	mb->beta = (mb->beta >= mb->bmax - 1e-5) ? (mb->bmax - 1e-5) : mb->beta;
-	mb->beta = (mb->beta <= mb->bmin + 1e-5) ? (mb->bmin + 1e-5) : mb->beta;
-	
-	/* m: maximal number of bins in a window */
+  mb->beta = (mb->beta >= mb->bmax - 1e-5) ? (mb->bmax - 1e-5) : mb->beta;
+  mb->beta = (mb->beta <= mb->bmin + 1e-5) ? (mb->bmin + 1e-5) : mb->beta;
+  
+  /* m: maximal number of bins in a window */
   mb->m = 0;
   /* order: order, should be 1 */
   mb->order = 1;
@@ -1114,17 +1114,17 @@ int mb_cfgopen_low(mb_t *mb, cfgdata_t *cfg, double bmin, double bmax, char suff
   }
 
   /* av_file: name of mbav file */
-	strcpy(buf, "mb");
-	strcat(buf, suf);
-	strcat(buf,".av");
+  strcpy(buf, "mb");
+  strcat(buf, suf);
+  strcat(buf,".av");
   mb->av_file = ssdup(buf);
   if (cfg == NULL || 0 != cfgget(cfg, &mb->av_file, "mbav_file", "%s")) {
     fprintf(stderr, "assuming default: mb->av_file = \"mb.av\", key: mbav_file\n");
   }
 
   /* ze_file: name of ze file */
-	strcpy(buf, "ZE");
-	strcat(buf, suf);
+  strcpy(buf, "ZE");
+  strcat(buf, suf);
   mb->ze_file = ssdup(buf);
   if (cfg == NULL || 0 != cfgget(cfg, &mb->ze_file, "ze_file", "%s")) {
     fprintf(stderr, "assuming default: mb->ze_file = \"ZE\", key: ze_file\n");
@@ -1198,43 +1198,43 @@ int mb_cfgopen_low(mb_t *mb, cfgdata_t *cfg, double bmin, double bmax, char suff
   mb->mode = 0;
   if (cfg == NULL || 0 != cfgget(cfg, &mb->mode, "ensemble_mode", "%d"))
     fprintf(stderr, "assuming default: mb->mode = 1.0, key: ensemble_mode\n");
-	
-	/* default values */
-	mb->beta0 = 0.5 * (mb->bmax + mb->bmin);
-	mb->invsigma2 = 1.0;
-	mb->c = 0.0;
+  
+  /* default values */
+  mb->beta0 = 0.5 * (mb->bmax + mb->bmin);
+  mb->invsigma2 = 1.0;
+  mb->c = 0.0;
 
-	if(mb->mode == 1)
-	{
-		/* beta0 */
-		if (cfg == NULL || 0 != cfgget(cfg, &mb->beta0, "ensemble_beta0", "%lf"))
-			fprintf(stderr, "assuming default: mb->beta0 = 0.5 * (mb->bmax + mb->bmin), key: ensemble_beta0\n");
-		if (mb->beta0 >= mb->bmax || mb->beta0 <= mb->bmin)
-			fprintf(stderr, "WARNING: beta0 is not in the temperature range!\n");
+  if(mb->mode == 1)
+  {
+    /* beta0 */
+    if (cfg == NULL || 0 != cfgget(cfg, &mb->beta0, "ensemble_beta0", "%lf"))
+      fprintf(stderr, "assuming default: mb->beta0 = 0.5 * (mb->bmax + mb->bmin), key: ensemble_beta0\n");
+    if (mb->beta0 >= mb->bmax || mb->beta0 <= mb->bmin)
+      fprintf(stderr, "WARNING: beta0 is not in the temperature range!\n");
 
-		/* sigma */
-		double sigma = 1.0;
-		if (cfg == NULL || 0 != cfgget(cfg, &sigma, "ensemble_sigma", "%lf"))
-			fprintf(stderr, "assuming default: mb->sigma = 1.0, key: ensemble_sigma\n");
-		if (sigma == 0)
-		{
-			fprintf(stderr, "ERROR: sigma cannot be zero!\n");
-			goto ERR;
-		}
-		mb->invsigma2 = 1.0/sigma/sigma;
+    /* sigma */
+    double sigma = 1.0;
+    if (cfg == NULL || 0 != cfgget(cfg, &sigma, "ensemble_sigma", "%lf"))
+      fprintf(stderr, "assuming default: mb->sigma = 1.0, key: ensemble_sigma\n");
+    if (sigma == 0)
+    {
+      fprintf(stderr, "ERROR: sigma cannot be zero!\n");
+      goto ERR;
+    }
+    mb->invsigma2 = 1.0/sigma/sigma;
   }
-	else if(mb->mode == 2)
-	{
-		/* c */
-		mb->c = 0.0;
-		if (cfg == NULL || 0 != cfgget(cfg, &mb->c, "ensemble_c", "%lf"))
-			fprintf(stderr, "assuming default: mb->c = 0.0, key: ensemble_c\n");
-	}
-	else if(mb->mode != 0)
-	{
-		fprintf(stderr, "invalid multicanonical ensemble parameter\n");
-		goto ERR;
-	}
+  else if(mb->mode == 2)
+  {
+    /* c */
+    mb->c = 0.0;
+    if (cfg == NULL || 0 != cfgget(cfg, &mb->c, "ensemble_c", "%lf"))
+      fprintf(stderr, "assuming default: mb->c = 0.0, key: ensemble_c\n");
+  }
+  else if(mb->mode != 0)
+  {
+    fprintf(stderr, "invalid multicanonical ensemble parameter\n");
+    goto ERR;
+  }
 
   /* ens_w: array of ensemble weights at bin boundaries */
   if ((mb->ens_w = calloc((mb->n + 2), sizeof(double))) == NULL) {
@@ -1567,9 +1567,9 @@ int mb_cfgopen_low(mb_t *mb, cfgdata_t *cfg, double bmin, double bmax, char suff
   /* eh_file: name of ehist file */
   mb->eh_file = NULL;
   if (mb->eh_mode) {
-		strcpy(buf, "hist");
-		strcat(buf, suf);
-		strcat(buf,".bin");
+    strcpy(buf, "hist");
+    strcat(buf, suf);
+    strcat(buf,".bin");
     mb->eh_file = ssdup(buf);
     if (cfg == NULL || 0 != cfgget(cfg, &mb->eh_file, "ehist_file", "%s")) {
       fprintf(stderr, "assuming default: mb->eh_file = \"hist.bin\", key: ehist_file\n");
@@ -1579,8 +1579,8 @@ int mb_cfgopen_low(mb_t *mb, cfgdata_t *cfg, double bmin, double bmax, char suff
   /* eh_rfile: name of reconstructed energy histogram */
   mb->eh_rfile = NULL;
   if (mb->eh_mode) {
-		strcpy(buf, "HMB");
-		strcat(buf, suf);
+    strcpy(buf, "HMB");
+    strcat(buf, suf);
     mb->eh_rfile = ssdup(buf);
     if (cfg == NULL || 0 != cfgget(cfg, &mb->eh_rfile, "ehist_mbin_file", "%s")) {
       fprintf(stderr, "assuming default: mb->eh_rfile = \"HMB\", key: ehist_mbin_file\n");
@@ -1699,13 +1699,13 @@ mb_t *mb_cfgopen(cfgdata_t *cfg, double bmin, double bmax, char suffix)
 {
   mb_t *mb;
 
-	/* allocate memory for mb_t */
+  /* allocate memory for mb_t */
   if ((mb = calloc(1, sizeof(*mb))) == NULL) {
     fprintf(stderr, "no memory for mb_t (size %u)\n", (unsigned) sizeof(*mb));
     fprintf(stderr, "FILE: %s, LINE: %d\n", __FILE__, __LINE__);
     exit(1);
   }
-	
+  
   /* call low level function */
   if (0 != mb_cfgopen_low(mb, cfg, bmin, bmax, suffix)) {
     fprintf(stderr, "mb_t: error while reading configuration file\n");
@@ -1888,8 +1888,8 @@ int mb_readbin_low(mb_t *mb, FILE *fp, int ver, int endn)
     fprintf(stderr, "FILE: %s, LINE: %d\n", __FILE__, __LINE__);
     goto ERR;
   }
-	mb->beta = (mb->beta >= mb->bmax - 1e-5) ? (mb->bmax - 1e-5) : mb->beta;
-	mb->beta = (mb->beta <= mb->bmin + 1e-5) ? (mb->bmin + 1e-5) : mb->beta;
+  mb->beta = (mb->beta >= mb->bmax - 1e-5) ? (mb->bmax - 1e-5) : mb->beta;
+  mb->beta = (mb->beta <= mb->bmin + 1e-5) ? (mb->bmin + 1e-5) : mb->beta;
   /* totvis: total number of visits, number of tempering */
   if (endn_fread(&mb->totvis, sizeof(mb->totvis), 1, fp, endn) != 1) {
     fprintf(stderr, "error in reading mb->totvis\n");
@@ -2747,21 +2747,21 @@ void mb_manifest(mb_t *mb, FILE *fp, int arrmax)
   /* ens_exp: ensemble exponent of beta */
   fprintf(fp, "mb->ens_exp: double, %g\n", mb->ens_exp);
   
-	/* mode */
+  /* mode */
   fprintf(fp, "mb->mode: int, %d\n", mb->mode);
-	if(mb->mode == 1)
-	{
-		/* beta0 */
-		fprintf(fp, "mb->beta0: double, %g\n", mb->beta0);
-		
-		/* invsigma2 */
-		fprintf(fp, "mb->invsigma2: double, %g\n", mb->invsigma2);
-	}
-	else if(mb->mode == 2)
-	{
-		/* c */
-		fprintf(fp, "mb->c: double, %g\n", mb->c);
-	}
+  if(mb->mode == 1)
+  {
+    /* beta0 */
+    fprintf(fp, "mb->beta0: double, %g\n", mb->beta0);
+    
+    /* invsigma2 */
+    fprintf(fp, "mb->invsigma2: double, %g\n", mb->invsigma2);
+  }
+  else if(mb->mode == 2)
+  {
+    /* c */
+    fprintf(fp, "mb->c: double, %g\n", mb->c);
+  }
 
   /* ens_w: array of ensemble weights at bin boundaries */
   fprintf(fp, "mb->ens_w: dynamic array of mb->n+1: ");

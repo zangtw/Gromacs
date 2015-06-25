@@ -1731,7 +1731,7 @@ void do_iparams(t_fileio *fio, t_functype ftype, t_iparams *iparams,
             gmx_fio_do_real(fio, iparams->lj.c12);
             break;
         case F_LJ14:
-				case F_VDW14:
+        case F_VDW14:
             gmx_fio_do_real(fio, iparams->lj14.c6A);
             gmx_fio_do_real(fio, iparams->lj14.c12A);
             gmx_fio_do_real(fio, iparams->lj14.c6B);

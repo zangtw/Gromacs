@@ -19,11 +19,11 @@
 struct AdaptTemperingParaExchangeType
 {
     int      repl;   
-		int      nrepl; 
+    int      nrepl; 
     real     *q0;
     real     *q1;     
     int      *ind;   
-		int      *allswaps;
+    int      *allswaps;
     int      nst;
     int      seed;
     int      nattempt[2];
@@ -47,38 +47,38 @@ struct AdaptTemperingParaExchangeType
 
 /*################ STATIC FUNCTIONS: PARAMETER EXCHANGE RELATED #########################*/
 static void AdaptTemperingCollectQuantities(at_t *at, at_repl_ex_t *re,
-		const gmx_multisim_t *ms, real *para_array, real *para2_array,
-		real *beta_array)
+    const gmx_multisim_t *ms, real *para_array, real *para2_array,
+    real *beta_array)
 {
-	int i;
+  int i;
 
-	if(para_array)
-	{
-		for(i=0; i<re->nrepl; i++)
-			para_array[i] = 0;
-		para_array[re->repl] = AdaptTempering_CurrentPara(at);
-		gmx_sum_sim(ms->nsim, para_array, ms);
-	}
+  if(para_array)
+  {
+    for(i=0; i<re->nrepl; i++)
+      para_array[i] = 0;
+    para_array[re->repl] = AdaptTempering_CurrentPara(at);
+    gmx_sum_sim(ms->nsim, para_array, ms);
+  }
 
-	if(para2_array)
-	{
-		for(i=0; i<re->nrepl; i++)
-			para2_array[i] = 0;
-		para2_array[re->repl] = AdaptTempering_CurrentSecondPara(at);
-		gmx_sum_sim(ms->nsim, para2_array, ms);
-	}
+  if(para2_array)
+  {
+    for(i=0; i<re->nrepl; i++)
+      para2_array[i] = 0;
+    para2_array[re->repl] = AdaptTempering_CurrentSecondPara(at);
+    gmx_sum_sim(ms->nsim, para2_array, ms);
+  }
 
-	if(beta_array)
-	{
-		for(i=0; i<re->nrepl; i++)
-			beta_array[i] = 0;
-		beta_array[re->repl] = AdaptTempering_CurrentBeta(at);
-		gmx_sum_sim(ms->nsim, beta_array, ms);
-	}
+  if(beta_array)
+  {
+    for(i=0; i<re->nrepl; i++)
+      beta_array[i] = 0;
+    beta_array[re->repl] = AdaptTempering_CurrentBeta(at);
+    gmx_sum_sim(ms->nsim, beta_array, ms);
+  }
 }
 
 static void AdaptTemperingComputeExchangeOrder(FILE *fplog, int **cyclic,
-		int **order, const int nrepl, const int maxswap)
+    int **order, const int nrepl, const int maxswap)
 {
     int i, j;
 
@@ -122,8 +122,8 @@ static void AdaptTemperingComputeExchangeOrder(FILE *fplog, int **cyclic,
 }
 
 static void AdaptTemperingCyclicDecomposition(FILE *fplog, 
-		const int *destinations, int **cyclic, gmx_bool *incycle, const int nrepl,
-		int *nswap)
+    const int *destinations, int **cyclic, gmx_bool *incycle, const int nrepl,
+    int *nswap)
 {
 
     int i, j, c, p;
@@ -185,8 +185,8 @@ static void AdaptTemperingCyclicDecomposition(FILE *fplog,
 }
 
 static void AdaptTemperingExchangePrepare(FILE *fplog,
-		const int *destinations, const int replica_id, const int nrepl, int *maxswap,
-		int **order, int **cyclic, int *incycle, gmx_bool *bThisReplicaExchanged)
+    const int *destinations, const int replica_id, const int nrepl, int *maxswap,
+    int **order, int **cyclic, int *incycle, gmx_bool *bThisReplicaExchanged)
 {
   int i, j;
   /* Hold the cyclic decomposition of the (multiple) replica
@@ -196,24 +196,24 @@ static void AdaptTemperingExchangePrepare(FILE *fplog,
 
   for (i=0; i<nrepl; i++)
   {
-		if (destinations[i] != i)
-		{
-			/* only mark as exchanged if the index has been shuffled */
-			bAnyReplicaExchanged = TRUE;
-			break;
-		}
+    if (destinations[i] != i)
+    {
+      /* only mark as exchanged if the index has been shuffled */
+      bAnyReplicaExchanged = TRUE;
+      break;
+    }
   }
   if (bAnyReplicaExchanged)
   {
-		/* reinitialize the placeholder arrays */
-		for (i=0; i<nrepl; i++)
-		{
-			for (j = 0; j < nrepl; j++)
-			{
-				cyclic[i][j] = -1;
-				order[i][j]  = -1;
-			}
-		}
+    /* reinitialize the placeholder arrays */
+    for (i=0; i<nrepl; i++)
+    {
+      for (j = 0; j < nrepl; j++)
+      {
+        cyclic[i][j] = -1;
+        order[i][j]  = -1;
+      }
+    }
 
     /* Identify the cyclic decomposition of the permutation (very
      * fast if neighbor replica exchange). */
@@ -226,144 +226,144 @@ static void AdaptTemperingExchangePrepare(FILE *fplog,
     /* Did this replica do any exchange at any point? */
     for (j = 0; j < *maxswap; j++)
     {
-			if (replica_id != order[replica_id][j])
-			{
-				*bThisReplicaExchanged = TRUE;
-				break;
-			}
-		}
+      if (replica_id != order[replica_id][j])
+      {
+        *bThisReplicaExchanged = TRUE;
+        break;
+      }
+    }
   }
 }
 
 static void AdaptTemperingExchangeReals(const gmx_multisim_t *ms, int b, 
-		real *v, int n)
+    real *v, int n)
 {
   real *buf;
   int   i;
 
   if (v)
   {
-		snew(buf, n);
+    snew(buf, n);
 #ifdef GMX_MPI
     /*
        MPI_Sendrecv(v,  n*sizeof(real),MPI_BYTE,MSRANK(ms,b),0,
        buf,n*sizeof(real),MPI_BYTE,MSRANK(ms,b),0,
        ms->mpi_comm_masters,MPI_STATUS_IGNORE);
      */
-		{
-			MPI_Request mpi_req;
-			
-			MPI_Isend(v, n*sizeof(real), MPI_BYTE, MSRANK(ms, b), 0,
+    {
+      MPI_Request mpi_req;
+      
+      MPI_Isend(v, n*sizeof(real), MPI_BYTE, MSRANK(ms, b), 0,
                     ms->mpi_comm_masters, &mpi_req);
-			MPI_Recv(buf, n*sizeof(real), MPI_BYTE, MSRANK(ms, b), 0,
+      MPI_Recv(buf, n*sizeof(real), MPI_BYTE, MSRANK(ms, b), 0,
                    ms->mpi_comm_masters, MPI_STATUS_IGNORE);
-			MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
+      MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
     }
 #endif
-		for (i=0; i<n; i++)
-		{
-			v[i] = buf[i];
-		}
-		sfree(buf);
+    for (i=0; i<n; i++)
+    {
+      v[i] = buf[i];
+    }
+    sfree(buf);
   }
 }
 
 static void AdaptTemperingExchangeInts(const gmx_multisim_t *ms, int b, 
-		int *v, int n)
+    int *v, int n)
 {
   int *buf;
   int  i;
 
   if (v)
   {
-		snew(buf, n);
+    snew(buf, n);
 #ifdef GMX_MPI
     /*
        MPI_Sendrecv(v,  n*sizeof(int),MPI_BYTE,MSRANK(ms,b),0,
        buf,n*sizeof(int),MPI_BYTE,MSRANK(ms,b),0,
        ms->mpi_comm_masters,MPI_STATUS_IGNORE);
      */
-		{
-			MPI_Request mpi_req;
-			
-			MPI_Isend(v, n*sizeof(int), MPI_BYTE, MSRANK(ms, b), 0,
+    {
+      MPI_Request mpi_req;
+      
+      MPI_Isend(v, n*sizeof(int), MPI_BYTE, MSRANK(ms, b), 0,
                     ms->mpi_comm_masters, &mpi_req);
-			MPI_Recv(buf, n*sizeof(int), MPI_BYTE, MSRANK(ms, b), 0,
+      MPI_Recv(buf, n*sizeof(int), MPI_BYTE, MSRANK(ms, b), 0,
                    ms->mpi_comm_masters, MPI_STATUS_IGNORE);
-			MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-		}
+      MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
+    }
 #endif
-		for (i=0; i<n; i++)
-		{
-			v[i] = buf[i];
-		}
-		sfree(buf);
+    for (i=0; i<n; i++)
+    {
+      v[i] = buf[i];
+    }
+    sfree(buf);
   }
 }
 
 static void AdaptTemperingExchangeDoubles(const gmx_multisim_t *ms, int b, 
-		double *v, int n)
+    double *v, int n)
 {
   double *buf;
   int     i;
 
   if (v)
   {
-		snew(buf, n);
+    snew(buf, n);
 #ifdef GMX_MPI
-		/*
+    /*
        MPI_Sendrecv(v,  n*sizeof(double),MPI_BYTE,MSRANK(ms,b),0,
        buf,n*sizeof(double),MPI_BYTE,MSRANK(ms,b),0,
        ms->mpi_comm_masters,MPI_STATUS_IGNORE);
      */
-		{
-			MPI_Request mpi_req;
-			
-			MPI_Isend(v, n*sizeof(double), MPI_BYTE, MSRANK(ms, b), 0,
+    {
+      MPI_Request mpi_req;
+      
+      MPI_Isend(v, n*sizeof(double), MPI_BYTE, MSRANK(ms, b), 0,
                     ms->mpi_comm_masters, &mpi_req);
-			MPI_Recv(buf, n*sizeof(double), MPI_BYTE, MSRANK(ms, b), 0,
+      MPI_Recv(buf, n*sizeof(double), MPI_BYTE, MSRANK(ms, b), 0,
                    ms->mpi_comm_masters, MPI_STATUS_IGNORE);
-			MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-		}
+      MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
+    }
 #endif
-		for (i=0; i<n; i++)
-		{
-			v[i] = buf[i];
-		}
-		sfree(buf);
+    for (i=0; i<n; i++)
+    {
+      v[i] = buf[i];
+    }
+    sfree(buf);
   }
 }
 
 static void AdaptTemperingExchangeRvecs(const gmx_multisim_t *ms, int b, 
-		rvec *v, int n)
+    rvec *v, int n)
 {
   rvec *buf;
   int   i;
 
   if (v)
   {
-		snew(buf, n);
+    snew(buf, n);
 #ifdef GMX_MPI
-		/*
+    /*
        MPI_Sendrecv(v[0],  n*sizeof(rvec),MPI_BYTE,MSRANK(ms,b),0,
        buf[0],n*sizeof(rvec),MPI_BYTE,MSRANK(ms,b),0,
        ms->mpi_comm_masters,MPI_STATUS_IGNORE);
-		 */
-		{
-			MPI_Request mpi_req;
-			
-			MPI_Isend(v[0], n*sizeof(rvec), MPI_BYTE, MSRANK(ms, b), 0,
+     */
+    {
+      MPI_Request mpi_req;
+      
+      MPI_Isend(v[0], n*sizeof(rvec), MPI_BYTE, MSRANK(ms, b), 0,
                     ms->mpi_comm_masters, &mpi_req);
-			MPI_Recv(buf[0], n*sizeof(rvec), MPI_BYTE, MSRANK(ms, b), 0,
+      MPI_Recv(buf[0], n*sizeof(rvec), MPI_BYTE, MSRANK(ms, b), 0,
                    ms->mpi_comm_masters, MPI_STATUS_IGNORE);
-			MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-		}
+      MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
+    }
 #endif
-		for (i=0; i<n; i++)
-		{
-			copy_rvec(buf[i], v[i]);
-		}
-		sfree(buf);
+    for (i=0; i<n; i++)
+    {
+      copy_rvec(buf[i], v[i]);
+    }
+    sfree(buf);
   }
 }
 
@@ -496,8 +496,8 @@ static void exchange_rvecs(const gmx_multisim_t *ms, int b, rvec *v, int n)
 }
 
 static void AdaptTemperingExchangeState(at_t *at, 
-		at_repl_ex_t *re, const gmx_multisim_t *ms, 
-		int b, t_state *state)
+    at_repl_ex_t *re, const gmx_multisim_t *ms, 
+    int b, t_state *state)
 {
     /* Exchange the state */
     int ngtc, nnhpres;
@@ -519,11 +519,11 @@ static void AdaptTemperingExchangeState(at_t *at,
     exchange_rvecs(ms, b, state->x, state->natoms);
     exchange_rvecs(ms, b, state->v, state->natoms);
     exchange_rvecs(ms, b, state->sd_X, state->natoms);
-		
-		/* Exchange the beta */
-		double mybeta=(double)(re->beta[re->repl]);
-		exchange_doubles(ms, b, &mybeta, 1);
-		AdaptTempering_ForceChangeBeta(at, mybeta);
+    
+    /* Exchange the beta */
+    double mybeta=(double)(re->beta[re->repl]);
+    exchange_doubles(ms, b, &mybeta, 1);
+    AdaptTempering_ForceChangeBeta(at, mybeta);
 }
 
 static void copy_rvecs(rvec *s, rvec *d, int n)
@@ -691,83 +691,83 @@ static void print_transition_matrix(FILE *fplog, const char *leg, int n, int **n
 }
 
 static void AdaptTemperingExchangeTest(at_t *at, FILE *fplog, 
-		const gmx_multisim_t *ms, at_repl_ex_t *re, gmx_large_int_t step, 
-		real time)
+    const gmx_multisim_t *ms, at_repl_ex_t *re, gmx_large_int_t step, 
+    real time)
 {
   int       m,i,j,a,b,tmp;
   real      delta = 0;
   gmx_bool  bPrint;
   gmx_bool *bEx      = re->bEx;
-	real     *beta     = re->beta;
+  real     *beta     = re->beta;
   real     *prob     = re->prob;
   int      *pind     = re->destinations; /* permuted index */
 
   fprintf(fplog, "Parameter exchange at step " gmx_large_int_pfmt " time %g\n", step, time);
 
-	AdaptTemperingCollectQuantities(at, re, ms, NULL, NULL, beta);
+  AdaptTemperingCollectQuantities(at, re, ms, NULL, NULL, beta);
 
   /* make a duplicate set of indices for shuffling */
   for (i=0; i<re->nrepl; i++)
   {
-		pind[i] = re->ind[i];
+    pind[i] = re->ind[i];
   }
 
   /* standard nearest neighbor replica exchange */
   m = (step / re->nst) % 2;
   for (i=1; i<re->nrepl; i++)
   {
-		a = re->ind[i-1];
-		b = re->ind[i];
+    a = re->ind[i-1];
+    b = re->ind[i];
 
-		bPrint = (re->repl == a || re->repl == b);
-		if (i % 2 == m)
-		{
-			delta = (beta[b] - beta[a]) * (re->q0[b] - re->q0[a]);
-			delta += (beta[b] * beta[b] - beta[a] * beta[a]) * (re->q1[b] - re->q1[a]);
-			
-			if (bPrint)
-			{
-				fprintf(fplog, "Repl %d <-> %d  Delta = %10.3e \n", a, b, delta);
-				fprintf(fplog, "T[b] = %f, T[a] = %f, T0[b] = %f, T0[a] = %f\n", 1.0/beta[b]/BOLTZ, 1.0/beta[a]/BOLTZ, re->q1[b]/re->q0[b]*(-2.0)/BOLTZ, re->q1[a]/re->q0[a]*(-2.0)/BOLTZ);
-				//fprintf(fplog, "beta[b] = %f, beta[a] = %f, q0[b] = %f, q0[a] = %f, q1[b] = %f, q1[a] = %f\n", beta[b], beta[a], re->q0[b], re->q0[a], re->q1[b], re->q1[a]);
-			}
+    bPrint = (re->repl == a || re->repl == b);
+    if (i % 2 == m)
+    {
+      delta = (beta[b] - beta[a]) * (re->q0[b] - re->q0[a]);
+      delta += (beta[b] * beta[b] - beta[a] * beta[a]) * (re->q1[b] - re->q1[a]);
+      
+      if (bPrint)
+      {
+        fprintf(fplog, "Repl %d <-> %d  Delta = %10.3e \n", a, b, delta);
+        fprintf(fplog, "T[b] = %f, T[a] = %f, T0[b] = %f, T0[a] = %f\n", 1.0/beta[b]/BOLTZ, 1.0/beta[a]/BOLTZ, re->q1[b]/re->q0[b]*(-2.0)/BOLTZ, re->q1[a]/re->q0[a]*(-2.0)/BOLTZ);
+        //fprintf(fplog, "beta[b] = %f, beta[a] = %f, q0[b] = %f, q0[a] = %f, q1[b] = %f, q1[a] = %f\n", beta[b], beta[a], re->q0[b], re->q0[a], re->q1[b], re->q1[a]);
+      }
 
-			if (delta <= 0)
-			{
-				/* accepted */
-				prob[i] = 1;
-				bEx[i]  = TRUE;
-			}
-			else
-			{
-				if (delta > PROBABILITYCUTOFF)
-				{
-					prob[i] = 0;
-				}
-				else
-				{
-					prob[i] = exp(-delta);
-				}
-				
-				/* roll a number to determine if accepted */
+      if (delta <= 0)
+      {
+        /* accepted */
+        prob[i] = 1;
+        bEx[i]  = TRUE;
+      }
+      else
+      {
+        if (delta > PROBABILITYCUTOFF)
+        {
+          prob[i] = 0;
+        }
+        else
+        {
+          prob[i] = exp(-delta);
+        }
+        
+        /* roll a number to determine if accepted */
         bEx[i] = (rando(&(re->seed)) < prob[i]);
       }
-			re->prob_sum[i] += prob[i];
+      re->prob_sum[i] += prob[i];
 
-			if (bEx[i])
-			{
-				/* swap these two */
-				tmp       = pind[i-1];
-				pind[i-1] = pind[i];
-				pind[i]   = tmp;
-				re->nexchange[i]++;  /* statistics for back compatibility */
-			}
-		}
-		else
-		{
-			prob[i] = -1;
-			bEx[i]  = FALSE;
-		}
+      if (bEx[i])
+      {
+        /* swap these two */
+        tmp       = pind[i-1];
+        pind[i-1] = pind[i];
+        pind[i]   = tmp;
+        re->nexchange[i]++;  /* statistics for back compatibility */
+      }
+    }
+    else
+    {
+      prob[i] = -1;
+      bEx[i]  = FALSE;
+    }
   }
   /* print some statistics */
   print_ind(fplog, "ex", re->nrepl, re->ind, bEx);
@@ -787,15 +787,15 @@ static void AdaptTemperingExchangeTest(at_t *at, FILE *fplog,
 /*################ STATIC FUNCTIONS: ADAPTIVE TEMPERING RELATED #########################*/
 static void AdaptTemperingCheckTemperatureCoupling(at_t *at, t_inputrec *ir)
 {
-	int i;
+  int i;
 
-	for(i=0; i<ir->opts.ngtc; i++)
-	{
-		if(ir->opts.ref_t[i] != AdaptTempering_ReferenceTemperature(at))
-			gmx_fatal(FARGS,"Coupling temperature of different groups are different from the one in *.cfg file. \
-				         This is not allowed for adaptive tempering. \
-								 Modify your *.mdp file and try the simulation again.");
-	}
+  for(i=0; i<ir->opts.ngtc; i++)
+  {
+    if(ir->opts.ref_t[i] != AdaptTempering_ReferenceTemperature(at))
+      gmx_fatal(FARGS,"Coupling temperature of different groups are different from the one in *.cfg file. \
+                 This is not allowed for adaptive tempering. \
+                 Modify your *.mdp file and try the simulation again.");
+  }
 }
 
 /*############################## END OF STATIC FUNCTIONS ###############################*/
@@ -803,40 +803,40 @@ static void AdaptTemperingCheckTemperatureCoupling(at_t *at, t_inputrec *ir)
 char *AdaptTemperingGetCfgFileName(char *arg, int nfile, const t_filenm fnm[], t_commrec *cr)
 {
   int i;
-	char mysim[2];
+  char mysim[2];
   char *fname, *p;
 
   for (i = 0; i < nfile; i++) 
-	{
+  {
     if (strcmp(arg, fnm[i].opt) == 0) 
-		{
-			fname = fnm[i].fns[0];
+    {
+      fname = fnm[i].fns[0];
 
       if (fnm[i].ftp == efMDP) 
-			{
+      {
         /* modify the extension from .mdp to .cfg */
         if (strcmp(fname, "grompp.mdp") == 0) 
-					return NULL;
-				else
-				{
-					/* founded the *.cfg file */
-					if(cr->ms != NULL)
-					{
-						if (cr->ms->nsim >= 10)
-							gmx_fatal(FARGS,"Dont support number of simulations larger than 9.\n");
-						sprintf(mysim,"%d",cr->ms->sim);
-					}
-					else mysim[0]='\0';
+          return NULL;
+        else
+        {
+          /* founded the *.cfg file */
+          if(cr->ms != NULL)
+          {
+            if (cr->ms->nsim >= 10)
+              gmx_fatal(FARGS,"Dont support number of simulations larger than 9.\n");
+            sprintf(mysim,"%d",cr->ms->sim);
+          }
+          else mysim[0]='\0';
 
-					p = strstr(fname, ".cfg.mdp");
-				  if(mysim[0] != '\0')
-				  {
-				    strncpy(p, mysim, 1);
-				    p++;
-				  }
-				  strncpy(p, ".cfg",4);
-				  p[4] = '\0';
-				}
+          p = strstr(fname, ".cfg.mdp");
+          if(mysim[0] != '\0')
+          {
+            strncpy(p, mysim, 1);
+            p++;
+          }
+          strncpy(p, ".cfg",4);
+          p[4] = '\0';
+        }
       }
       return fname;
     }
@@ -845,104 +845,104 @@ char *AdaptTemperingGetCfgFileName(char *arg, int nfile, const t_filenm fnm[], t
 }
 
 at_t *AdaptTemperingInit(char *cfg_fnm, gmx_bool bCPT, t_inputrec *ir, 
-		t_commrec *cr) 
+    t_commrec *cr) 
 {
-	at_t *at = NULL;
+  at_t *at = NULL;
 
-	if (SIMMASTER(cr))
-	{
-		at = AdaptTempering_MasterCreate(cfg_fnm, bCPT, ir->delta_t, (cr->ms == NULL) ? 0: cr->ms->sim);
-		if (at == NULL)
-			gmx_fatal(FARGS,"Error from node %d during initializing adaptive tempering. This maybe caused by a failure to allocate memory.\n", cr->sim_nodeid);
-	}
-	else
-	{
-		at = AdaptTempering_NonMasterCreate();
-		if (at == NULL)
-			gmx_fatal(FARGS,"Error from node %d during initializing adaptive tempering. This maybe caused by a failure to allocate memory.\n", cr->sim_nodeid);
-	}
+  if (SIMMASTER(cr))
+  {
+    at = AdaptTempering_MasterCreate(cfg_fnm, bCPT, ir->delta_t, (cr->ms == NULL) ? 0: cr->ms->sim);
+    if (at == NULL)
+      gmx_fatal(FARGS,"Error from node %d during initializing adaptive tempering. This maybe caused by a failure to allocate memory.\n", cr->sim_nodeid);
+  }
+  else
+  {
+    at = AdaptTempering_NonMasterCreate();
+    if (at == NULL)
+      gmx_fatal(FARGS,"Error from node %d during initializing adaptive tempering. This maybe caused by a failure to allocate memory.\n", cr->sim_nodeid);
+  }
 
 #ifdef GMX_MPI
-	if (PAR(cr))
-		AdaptTempering_SyncAllNodes(at, cr->mpi_comm_mygroup);
+  if (PAR(cr))
+    AdaptTempering_SyncAllNodes(at, cr->mpi_comm_mygroup);
 #endif
-	
-	/* Check the temperature coupling for all nodes */
-	AdaptTemperingCheckTemperatureCoupling(at, ir);
+  
+  /* Check the temperature coupling for all nodes */
+  AdaptTemperingCheckTemperatureCoupling(at, ir);
 
-	if (SIMMASTER(cr))
-	{
-		AdaptTempering_OpenLog(at);
-		
-		/*if (!AdaptTempering_CreateMultipleBin(at))*/
-		/*gmx_fatal(FARGS,"Error during creating multiple bins. This maybe caused by a failure to allocate memory.\n");*/
-	}
+  if (SIMMASTER(cr))
+  {
+    AdaptTempering_OpenLog(at);
+    
+    /*if (!AdaptTempering_CreateMultipleBin(at))*/
+    /*gmx_fatal(FARGS,"Error during creating multiple bins. This maybe caused by a failure to allocate memory.\n");*/
+  }
 
-	/* Update the current temperature; update the force rescaling factor */
-	if (SIMMASTER(cr))
-		AdaptTempering_UpdateTemperature(at);
-	if (PAR(cr))
-		gmx_bcast(sizeof(at->beta), &at->beta, cr);
-	
-	if (SIMMASTER(cr))
-		AdaptTempering_DumpToFile(at, "at.manifest", 3);
+  /* Update the current temperature; update the force rescaling factor */
+  if (SIMMASTER(cr))
+    AdaptTempering_UpdateTemperature(at);
+  if (PAR(cr))
+    gmx_bcast(sizeof(at->beta), &at->beta, cr);
+  
+  if (SIMMASTER(cr))
+    AdaptTempering_DumpToFile(at, "at.manifest", 3);
 
-	return at;
+  return at;
 }
 
 gmx_bool AdaptTemperingDoTemperingThisStep(at_t *at, gmx_large_int_t step,
-		gmx_bool bFirstStep, gmx_bool bLastStep, gmx_bool bNS, t_commrec *cr)
+    gmx_bool bFirstStep, gmx_bool bLastStep, gmx_bool bNS, t_commrec *cr)
 {
-	gmx_bool bTempering;
+  gmx_bool bTempering;
 
-	if(SIMMASTER(cr))
-	{
-		/* nsttemp < 0 means do tempering at an NS step */
-		bTempering = (at->nsttemp > 0) || bNS || bLastStep;
+  if(SIMMASTER(cr))
+  {
+    /* nsttemp < 0 means do tempering at an NS step */
+    bTempering = (at->nsttemp > 0) || bNS || bLastStep;
 
-		/* no tempering during prerun, temperature is fixed */
-		if (at->nsttemp > 0 && ((int)step % at->nsttemp) != 0 && !bLastStep)
-			bTempering = 0; /* if nsttemp is set, do tempering at a regular interval */
-	}
+    /* no tempering during prerun, temperature is fixed */
+    if (at->nsttemp > 0 && ((int)step % at->nsttemp) != 0 && !bLastStep)
+      bTempering = 0; /* if nsttemp is set, do tempering at a regular interval */
+  }
   
-	if (PAR(cr))
-		gmx_bcast(sizeof(gmx_bool), &bTempering, cr);
+  if (PAR(cr))
+    gmx_bcast(sizeof(gmx_bool), &bTempering, cr);
 
-	return bTempering;
+  return bTempering;
 }
 
 gmx_bool AdaptTemperingUpdate(at_t *at, gmx_large_int_t step, 
-		gmx_bool bFirstStep, gmx_bool bLastStep, gmx_bool bTotE, 
-		gmx_bool bXTC, gmx_bool bCPT, t_commrec *cr, 
-		gmx_enerdata_t *enerd, gmx_bool bMulTop, real extraE)
+    gmx_bool bFirstStep, gmx_bool bLastStep, gmx_bool bTotE, 
+    gmx_bool bXTC, gmx_bool bCPT, t_commrec *cr, 
+    gmx_enerdata_t *enerd, gmx_bool bMulTop, real extraE)
 {
-	if(!bTotE)  
-		gmx_fatal(FARGS, "global potential energy not avaiable at step: " llong_pfmt " \n", step);
-	
-	if(SIMMASTER(cr))
-	{
-		at->Ea = enerd->term[F_EPOT];
-		
-		if(bMulTop)
-			at->Ea = at->Ea + extraE;
-	}
+  if(!bTotE)  
+    gmx_fatal(FARGS, "global potential energy not avaiable at step: " llong_pfmt " \n", step);
+  
+  if(SIMMASTER(cr))
+  {
+    at->Ea = enerd->term[F_EPOT];
+    
+    if(bMulTop)
+      at->Ea = at->Ea + extraE;
+  }
 
   /* change temperature, and regularly write output files */
   if (SIMMASTER(cr)) {
     if (AdaptTempering_Langevin(at, (llong_t)step, bFirstStep, bLastStep, bXTC, bCPT))
-			gmx_fatal(FARGS,"node %d, step: " llong_pfmt ", error during moving master\n", cr->nodeid, step);
+      gmx_fatal(FARGS,"node %d, step: " llong_pfmt ", error during moving master\n", cr->nodeid, step);
   }
-	
-	if (SIMMASTER(cr))
-		AdaptTempering_UpdateTemperature(at);
-	if (PAR(cr))
-		gmx_bcast(sizeof(at->beta), &at->beta, cr);
+  
+  if (SIMMASTER(cr))
+    AdaptTempering_UpdateTemperature(at);
+  if (PAR(cr))
+    gmx_bcast(sizeof(at->beta), &at->beta, cr);
 
   return 1;
 }
-			
+      
 at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog, 
-		gmx_multisim_t *ms, t_state *state, t_inputrec *ir, int nst, int seed)
+    gmx_multisim_t *ms, t_state *state, t_inputrec *ir, int nst, int seed)
 {
   int  i,j,k;
   at_repl_ex_t *re;
@@ -952,7 +952,7 @@ at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog,
 
   if (ms == NULL || ms->nsim == 1)
   {
-		gmx_fatal(FARGS, "Nothing to exchange with only one replica, maybe you forgot to set the -multi option of mdrun?");
+    gmx_fatal(FARGS, "Nothing to exchange with only one replica, maybe you forgot to set the -multi option of mdrun?");
   }
 
   snew(re, 1);
@@ -961,8 +961,8 @@ at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog,
   re->nrepl    = ms->nsim;
   snew(re->q0, re->nrepl); 
   snew(re->q1, re->nrepl); 
-	
-	fprintf(fplog, "Repl  There are %d replicas:\n", re->nrepl);
+  
+  fprintf(fplog, "Repl  There are %d replicas:\n", re->nrepl);
 
   check_multi_int(fplog, ms, state->natoms, "the number of atoms", FALSE);
   check_multi_int(fplog, ms, ir->eI, "the integrator", FALSE);
@@ -976,20 +976,20 @@ at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog,
   check_multi_int(fplog, ms, ir->efep, "free energy", FALSE);
   check_multi_int(fplog, ms, ir->fepvals->n_lambda, "number of lambda states", FALSE);
 
-	AdaptTemperingCollectQuantities(at, re, ms, re->q0, NULL, NULL);
-	AdaptTemperingCollectQuantities(at, re, ms, NULL, re->q1, NULL);
+  AdaptTemperingCollectQuantities(at, re, ms, re->q0, NULL, NULL);
+  AdaptTemperingCollectQuantities(at, re, ms, NULL, re->q1, NULL);
 
   bDiff = FALSE;
   for (i=1; i<ms->nsim; i++)
   {
-		if (re->q0[i] != re->q0[0] || re->q1[i] != re->q1[0])
+    if (re->q0[i] != re->q0[0] || re->q1[i] != re->q1[0])
     {
-			bDiff = TRUE;
+      bDiff = TRUE;
     }
   }
 
-	if (!bDiff)
-		gmx_fatal(FARGS,"The parameters of the %d systems are all the same, there is nothing to exchange",re->nrepl);
+  if (!bDiff)
+    gmx_fatal(FARGS,"The parameters of the %d systems are all the same, there is nothing to exchange",re->nrepl);
       
   /* Make an index for increasing replica order */
   /* only makes sense if one or the other is varying, not both!
@@ -1000,18 +1000,18 @@ at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog,
     re->ind[i] = i;
   }
 
-	/* Sort: currently use q0/q1(propotional to minus beta) as the index sorting criteria */
+  /* Sort: currently use q0/q1(propotional to minus beta) as the index sorting criteria */
   for(i=0; i<re->nrepl; i++)
   {
-		for(j=i+1; j<re->nrepl; j++)
+    for(j=i+1; j<re->nrepl; j++)
     {
-			if (re->q0[re->ind[j]]/re->q1[re->ind[j]] < re->q0[re->ind[i]]/re->q1[re->ind[i]])
-			{
-				k = re->ind[i];
-				re->ind[i] = re->ind[j];
-				re->ind[j] = k;
-			}
-		}
+      if (re->q0[re->ind[j]]/re->q1[re->ind[j]] < re->q0[re->ind[i]]/re->q1[re->ind[i]])
+      {
+        k = re->ind[i];
+        re->ind[i] = re->ind[j];
+        re->ind[j] = k;
+      }
+    }
   }
 
   /* keep track of all the swaps, starting with the initial placement. */
@@ -1021,25 +1021,25 @@ at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog,
       re->allswaps[i] = re->ind[i];
   }
 
-	fprintf(fplog, "\nParameter exchange in adaptive tempering\n");
+  fprintf(fplog, "\nParameter exchange in adaptive tempering\n");
   for(i=0; i<re->nrepl; i++)
-	{
-		fprintf(fplog, " %5.1f", re->q0[re->ind[i]]);
-	}
-	fprintf(fplog, "\n");
+  {
+    fprintf(fplog, " %5.1f", re->q0[re->ind[i]]);
+  }
+  fprintf(fplog, "\n");
   
-	re->nst = nst;
+  re->nst = nst;
   if (seed == -1)
   {
-		if (MASTERSIM(ms))
-		{
-			re->seed = make_seed();
+    if (MASTERSIM(ms))
+    {
+      re->seed = make_seed();
     }
-		else
-		{
-			re->seed = 0;
-		}
-		gmx_sumi_sim(1, &(re->seed), ms);
+    else
+    {
+      re->seed = 0;
+    }
+    gmx_sumi_sim(1, &(re->seed), ms);
   }
   else
   {
@@ -1056,7 +1056,7 @@ at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog,
   snew(re->nmoves, re->nrepl);
   for (i=0; i<re->nrepl; i++)
   {
-		snew(re->nmoves[i], re->nrepl);
+    snew(re->nmoves[i], re->nrepl);
   }
   fprintf(fplog, "Replica exchange information below: x=exchange, pr=probability\n");
 
@@ -1069,7 +1069,7 @@ at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog,
   snew(re->order, re->nrepl);
   for (i=0; i<re->nrepl; i++)
   {
-		snew(re->cyclic[i], re->nrepl);
+    snew(re->cyclic[i], re->nrepl);
     snew(re->order[i], re->nrepl);
   }
   /* allocate space for the functions storing the data for the replicas */
@@ -1080,10 +1080,10 @@ at_repl_ex_t *AdaptTemperingInitParaExchange(at_t *at, FILE *fplog,
   snew(re->beta, re->nrepl);
   return re;
 }
-							
+              
 gmx_bool AdaptTemperingDoParaExchange(at_t *at, FILE *fplog, t_commrec *cr,
-		at_repl_ex_t *re, t_state *state, gmx_enerdata_t *enerd, t_state *state_local,
-		gmx_large_int_t step, real time)
+    at_repl_ex_t *re, t_state *state, gmx_enerdata_t *enerd, t_state *state_local,
+    gmx_large_int_t step, real time)
 {
   int i, j;
   int replica_id = 0;
@@ -1100,8 +1100,8 @@ gmx_bool AdaptTemperingDoParaExchange(at_t *at, FILE *fplog, t_commrec *cr,
       replica_id  = re->repl;
       AdaptTemperingExchangeTest(at, fplog, cr->ms, re, step, time);
       AdaptTemperingExchangePrepare(fplog, re->destinations, 
-					replica_id, re->nrepl, &maxswap, re->order, re->cyclic, re->incycle, 
-					&bThisReplicaExchanged);
+          replica_id, re->nrepl, &maxswap, re->order, re->cyclic, re->incycle, 
+          &bThisReplicaExchanged);
   }
   /* Do intra-simulation broadcast so all processors belonging to
    * each simulation know whether they need to participate in
@@ -1117,45 +1117,45 @@ gmx_bool AdaptTemperingDoParaExchange(at_t *at, FILE *fplog, t_commrec *cr,
 
   if (bThisReplicaExchanged)
   {
-		/* Exchange the states */
-		if (PAR(cr))
-		{
-			/* Collect the global state on the master node */
-			if (DOMAINDECOMP(cr))
-			{
-				dd_collect_state(cr->dd, state_local, state);
-			}
+    /* Exchange the states */
+    if (PAR(cr))
+    {
+      /* Collect the global state on the master node */
+      if (DOMAINDECOMP(cr))
+      {
+        dd_collect_state(cr->dd, state_local, state);
+      }
     }
 
-		if (MASTER(cr))
+    if (MASTER(cr))
     {
        /* There will be only one swap cycle with standard replica
         * exchange, but there may be multiple swap cycles if we
         * allow multiple swaps. */
 
-			for (j=0; j<maxswap; j++)
-			{
-				exchange_partner = re->order[replica_id][j];
+      for (j=0; j<maxswap; j++)
+      {
+        exchange_partner = re->order[replica_id][j];
 
-				if (exchange_partner != replica_id)
-				{
-					/* Exchange the global states between the master nodes */
-					fprintf(fplog, "Exchanging %d with %d\n", replica_id, exchange_partner);
-					AdaptTemperingExchangeState(at, re, cr->ms, exchange_partner, state);
+        if (exchange_partner != replica_id)
+        {
+          /* Exchange the global states between the master nodes */
+          fprintf(fplog, "Exchanging %d with %d\n", replica_id, exchange_partner);
+          AdaptTemperingExchangeState(at, re, cr->ms, exchange_partner, state);
         }
       }
     }
       
-		/* With domain decomposition the global state is distributed later */
+    /* With domain decomposition the global state is distributed later */
     if (!DOMAINDECOMP(cr))
-		{
-			/* Copy the global state to the local state data structure */
-			AdaptTemperingUpdateLocalState(state, state_local);
+    {
+      /* Copy the global state to the local state data structure */
+      AdaptTemperingUpdateLocalState(state, state_local);
 
-			if (PAR(cr))
-			{
-				bcast_state(cr, state, FALSE);
-			}
+      if (PAR(cr))
+      {
+        bcast_state(cr, state, FALSE);
+      }
     }
   }
 
@@ -1213,10 +1213,10 @@ void AdaptTemperingPrintExchangeStatistics(at_t * at, FILE *fplog, at_repl_ex_t 
 
 void AdaptTemperingRescaleForce(at_t *at, t_mdatoms *mdatoms, rvec f[])
 {
-	int i;
-	real scale;
-	
-	scale = AdaptTempering_ForceScaleFactor(at);
+  int i;
+  real scale;
+  
+  scale = AdaptTempering_ForceScaleFactor(at);
   
   /* scale the force */
   for (i = mdatoms->start; i < mdatoms->start + mdatoms->homenr; i++) {
@@ -1228,5 +1228,5 @@ void AdaptTemperingRescaleForce(at_t *at, t_mdatoms *mdatoms, rvec f[])
 
 real AdaptTemperingCurrentTemperature(at_t *at)
 {
-	return AdaptTempering_CurrentT(at);
+  return AdaptTempering_CurrentT(at);
 }

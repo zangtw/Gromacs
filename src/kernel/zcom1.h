@@ -960,16 +960,16 @@ int mtload(const char *fname, uint32_t seed)
 
   if (err) { /* initialize from seed */
     if (seed == 0) seed = MTSEED;
-		fprintf(stderr, "mtload: cannot init from file:\"%s\". Will init from seed: %d directly.\n", fname, seed);
-		mt_[0] = seed & 0xffffffffUL;
+    fprintf(stderr, "mtload: cannot init from file:\"%s\". Will init from seed: %d directly.\n", fname, seed);
+    mt_[0] = seed & 0xffffffffUL;
     for (k = 1; k < MT_N; k++) /* the final mask is for 64-bit machines */
       mt_[k] = (1812433253UL * (mt_[k-1] ^ (mt_[k-1]>>30)) + k) & 0xffffffffUL;
     mtidx_ = MT_N; /* request updating */
   }
-	else
-		fprintf(stderr, "Successfully loaded\"%s\"!\n", fname);
+  else
+    fprintf(stderr, "Successfully loaded\"%s\"!\n", fname);
   
-	return (mtidx_ < 0);
+  return (mtidx_ < 0);
 }
 
 /* return an unsigned random number */
@@ -1613,7 +1613,7 @@ INLINE logfile_t *log_open(const char *fn)
   if (fn == NULL) fn = "LOG";
   log->fname = fn;
   log->flags = 0;
-	log->flags |= LOG_APPEND; 
+  log->flags |= LOG_APPEND; 
   return log;
 }
 

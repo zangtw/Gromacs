@@ -1053,7 +1053,7 @@ void pr_iparams(FILE *fp, t_functype ftype, t_iparams *iparams)
             fprintf(fp, "c6=%15.8e, c12=%15.8e\n", iparams->lj.c6, iparams->lj.c12);
             break;
         case F_LJ14:
-				case F_VDW14:
+        case F_VDW14:
             fprintf(fp, "c6A=%15.8e, c12A=%15.8e, c6B=%15.8e, c12B=%15.8e\n",
                     iparams->lj14.c6A, iparams->lj14.c12A,
                     iparams->lj14.c6B, iparams->lj14.c12B);

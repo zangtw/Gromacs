@@ -27,8 +27,8 @@ static int at_loaddata(at_t *at, bool bCPT)
 
   if (!bCPT) /* initial run */
     return 0;
-	/*readmb = (at->premode > 0) ? 0 : bCPT;*/
-	readmb = bCPT;
+  /*readmb = (at->premode > 0) ? 0 : bCPT;*/
+  readmb = bCPT;
   if (readmb) {
     if (mb_readbin(mb, mb->av_file, &ver) != 0) { /* read stat. */
       fprintf(stderr, "cannot load mb data from %s\n", mb->av_file);
@@ -36,7 +36,7 @@ static int at_loaddata(at_t *at, bool bCPT)
     }
     fprintf(stderr, "%s version: %d\n", mb->av_file, ver);
     mb_wze(mb, "ze_init");
-		at->beta = at->mb->beta; /* update the current temperature */
+    at->beta = at->mb->beta; /* update the current temperature */
 
     if (mb_eh_readbin(mb, mb->eh_file, &ver) != 0) { /* read E-histograms */
       fprintf(stderr, "cannot load energy histogram from %s\n", mb->eh_file);
@@ -56,8 +56,8 @@ static int at_doevery(llong_t step, int nst, bool bfirst, bool blast)
 
 /* write various output files */
 static void at_output(at_t *at, llong_t step,
-		      int ib, double invw, double t1, double t2, double Eav,
-		      bool bfirst, bool blast, bool btr, bool bflush)
+          int ib, double invw, double t1, double t2, double Eav,
+          bool bfirst, bool blast, bool btr, bool bflush)
 {
   bool btrace;
 
@@ -67,10 +67,10 @@ static void at_output(at_t *at, llong_t step,
   else /* tracing is disabled if at->nsttrace == 0 */
     btrace = (at->nsttrace == 0) ? btr : 0;
 
-	if(bflush)
-		at->log->flags |= LOG_FLUSHAFTER;
-	else
-		at->log->flags ^= LOG_FLUSHAFTER;
+  if(bflush)
+    at->log->flags |= LOG_FLUSHAFTER;
+  else
+    at->log->flags ^= LOG_FLUSHAFTER;
 
   if (btrace) {
     log_printf(at->log, "%10.3f %5d %10.6f %12.3f %12.3f %10.6f %8.3f %8.5f",
@@ -103,7 +103,7 @@ static double *at_barr_init(mb_t *mb)
   int i;
 
   for(i=0; i<n; i++)
-		barr[i] = mb->barr[i];
+    barr[i] = mb->barr[i];
 
   return barr;
 }
@@ -196,24 +196,24 @@ static void at_manifest(at_t *at, FILE *fp, int arrmax)
 * file `cfg', or if unavailable, from default values */
 static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
 {
-	char buf1[100], buf2[100];
-	char suf[2];
-	suf[0] = at->suffix;
-	suf[1] = '\0';
-	/* NOTE: only at->beta won't be initialized in this function */
+  char buf1[100], buf2[100];
+  char suf[2];
+  suf[0] = at->suffix;
+  suf[1] = '\0';
+  /* NOTE: only at->beta won't be initialized in this function */
 
   die_if((at == NULL),"null pointer to at_t\n");
   die_if((cfg == NULL),"cannot load *.cfg file\n");
   
-	/* bmin: minimal beta (highest temperature) */
+  /* bmin: minimal beta (highest temperature) */
   die_if(cfgget(cfg, &at->bmin, "beta_min", "%lf"), "missing var: at->bmin, key: beta_min, fmt: %%lf\n");
   die_if((at->bmin <= 0.0), "at->bmin should be positive!\n");
-	
-	/* bmax: maximum beta (lowest temperature) */
+  
+  /* bmax: maximum beta (lowest temperature) */
   die_if(cfgget(cfg, &at->bmax, "beta_max", "%lf"), "missing var: at->bmax, key: beta_min, fmt: %%lf\n");
   die_if((at->bmax <= 0.0), "at->bmax: should be positive!\n");
   
-	die_if(!(at->bmax > at->bmin), "at->bmax: failed validation: at->bmax > at->bmin\n");
+  die_if(!(at->bmax > at->bmin), "at->bmax: failed validation: at->bmax > at->bmin\n");
 
   /* T0: thermostat temperature */
   at->T0 = 300.0;
@@ -223,12 +223,12 @@ static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
   /* nsttemp: frequency of tempering, 0: disable, -1: only ns */
   at->nsttemp = -1;
   if (cfgget(cfg, &at->nsttemp, "nsttemp", "%d"))
-		fprintf(stderr, "assuming default: at->nsttemp = -1, key: nsttemp\n");
+    fprintf(stderr, "assuming default: at->nsttemp = -1, key: nsttemp\n");
 
   /* mvreps: number of repeating Langevin eq */
   at->mvreps = 1;
   if (cfgget(cfg, &at->mvreps, "move_repeats", "%d"))
-		fprintf(stderr, "assuming default: at->mvreps = 1, key: move_repeats\n");
+    fprintf(stderr, "assuming default: at->mvreps = 1, key: move_repeats\n");
 
   /* tmstep: MD integration step, for convenience */
   at->tmstep = tmstep;
@@ -236,27 +236,27 @@ static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
   /* nsttrace: interval of writing trace file; -1: only when doing neighbor search, 0: disable */
   at->nsttrace = -1;
   if (cfgget(cfg, &at->nsttrace, "nsttrace", "%d"))
-		fprintf(stderr, "assuming default: at->nsttrace = -1, key: nsttrace\n");
+    fprintf(stderr, "assuming default: at->nsttrace = -1, key: nsttrace\n");
 
   /* grand: function pointer to a gaussian random number generator */
   at->grand = &grand0;
   
-	/* rng_file: file name of random number state */
+  /* rng_file: file name of random number state */
   if (cfgget(cfg, &buf1, "rng_file", "%s"))
-	{
-		fprintf(stderr, "assuming default: at->rng_file = \"MTSEED\", key: rng_file\n");
-		strcpy(buf1, "MTSEED");
-	}
-	strcat(buf1, suf);
+  {
+    fprintf(stderr, "assuming default: at->rng_file = \"MTSEED\", key: rng_file\n");
+    strcpy(buf1, "MTSEED");
+  }
+  strcat(buf1, suf);
   at->rng_file = ssdup(buf1);
 
   /* trace_file: name of trace file */
   if (cfgget(cfg, &buf2, "trace_file", "%s"))
-	{
-		fprintf(stderr, "assuming default: at->trace_file = \"TRACE\", key: trace_file\n");
-		strcpy(buf2, "TRACE");
-	}
-	strcat(buf2, suf);
+  {
+    fprintf(stderr, "assuming default: at->trace_file = \"TRACE\", key: trace_file\n");
+    strcpy(buf2, "TRACE");
+  }
+  strcat(buf2, suf);
   at->trace_file = ssdup(buf2);
 
   /* log: logfile */
@@ -265,13 +265,13 @@ static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
   /* bTH : 0: disable; 1:enable */
   at->bTH = 0;
   if (cfgget(cfg, &at->bTH, "boost_mode", "%d")) 
-		fprintf(stderr, "assuming default: at->th_mode = 0, key: boost_mode\n");
+    fprintf(stderr, "assuming default: at->th_mode = 0, key: boost_mode\n");
 
   /* TH_Tref */
   at->TH_Tref = 300.0;
   if (at->bTH)
     if (cfgget(cfg, &at->TH_Tref, "boost_Tref", "%lf"))
-			fprintf(stderr, "assuming default: at->th_Tref = 300.0, key: boost_Tref\n");
+      fprintf(stderr, "assuming default: at->th_Tref = 300.0, key: boost_Tref\n");
 
   /* kappa0 */
   at->kappa0 = 1.0;
@@ -283,16 +283,16 @@ static int at_cfgopen_low(at_t *at, cfgdata_t *cfg, double tmstep)
   at->epsilon0 = 0.0;
   if (at->bTH)
     if (cfgget(cfg, &at->epsilon0, "epsilon0", "%lf"))
-			fprintf(stderr, "assuming default: at->epsilon0 = 0.0, key: epsilon0\n");
+      fprintf(stderr, "assuming default: at->epsilon0 = 0.0, key: epsilon0\n");
   
   /* mb: handle for multiple-bin estimator */
-	at->mb = mb_cfgopen(cfg, at->bmin, at->bmax, at->suffix);
+  at->mb = mb_cfgopen(cfg, at->bmin, at->bmax, at->suffix);
   die_if((at->mb == NULL), "failed to initialize at->mb\n\n");
-	
+  
   /* Ea: total potential energy */
   at->Ea = 0.0;
 
-	return 1;
+  return 1;
 }
 
 /* return a pointer of an initialized at_t
@@ -302,32 +302,32 @@ static at_t *AdaptTempering_OpenCfg(const char *cfgname, double tmstep, int suff
 {
   cfgdata_t *cfg;
   at_t *at;
-	bool bLoaded;
-	char *p;
-	int delay;
+  bool bLoaded;
+  char *p;
+  int delay;
 
   /* open configuration file */
   die_if(!(cfg = cfgopen(cfgname)), "at_t: cannot open config. file %s.\n", cfgname);
 
   /* allocate memory for at_t */
-	xnew(at, 1);
+  xnew(at, 1);
 
-	/* Get the file suffix first */
-	die_if(suffix >= 10, "do not support # of simulations > 10 currently\n");
-	at->suffix = (char)(((int)'0') + suffix);
+  /* Get the file suffix first */
+  die_if(suffix >= 10, "do not support # of simulations > 10 currently\n");
+  at->suffix = (char)(((int)'0') + suffix);
   
-	/* call low level function */
+  /* call low level function */
   die_if (!(bLoaded = at_cfgopen_low(at,cfg,tmstep)), "at_t: error while reading configuration file %s\n", cfgname);
-	
-	printf("Successfully loaded cfg data!\n");
-	
-	/* generate different random seeds in multi-simulation */
-	delay = suffix * 2;
-	sleep(delay);
+  
+  printf("Successfully loaded cfg data!\n");
+  
+  /* generate different random seeds in multi-simulation */
+  delay = suffix * 2;
+  sleep(delay);
 
-	/* load random number generator */
-	mtload(at->rng_file, 0);
-	
+  /* load random number generator */
+  mtload(at->rng_file, 0);
+  
   /* close handle to configuration file */
   cfgclose(cfg);
   return at;
@@ -348,32 +348,32 @@ static void at_close_low(at_t *at)
 
 real AdaptTempering_CurrentBeta(at_t *at)
 {
-	return at->beta;
+  return at->beta;
 }
 
 real AdaptTempering_CurrentT(at_t *at)
 {
-	return Beta2T(at->beta);
+  return Beta2T(at->beta);
 }
 
 real AdaptTempering_CurrentPara(at_t *at)
 {
-	if (at->mb->mode == 0)
-		return 1;
-	else if (at->mb->mode == 1)
-		return at->mb->beta0 * at->mb->invsigma2;
-	else if (at->mb->mode == 2)
-		return at->mb->c;
+  if (at->mb->mode == 0)
+    return 1;
+  else if (at->mb->mode == 1)
+    return at->mb->beta0 * at->mb->invsigma2;
+  else if (at->mb->mode == 2)
+    return at->mb->c;
 }
 
 real AdaptTempering_CurrentSecondPara(at_t *at)
 {
-	if (at->mb->mode == 0)
-		return 1;
-	else if (at->mb->mode == 1)
-		return -0.5 * at->mb->invsigma2;
-	else if (at->mb->mode == 2)
-		return 1;
+  if (at->mb->mode == 0)
+    return 1;
+  else if (at->mb->mode == 1)
+    return -0.5 * at->mb->invsigma2;
+  else if (at->mb->mode == 2)
+    return 1;
 }
 
 real AdaptTempering_ReferenceTemperature(at_t *at)
@@ -383,9 +383,9 @@ real AdaptTempering_ReferenceTemperature(at_t *at)
 
 void AdaptTempering_ForceChangeBeta(at_t *at, double newbeta)
 {
-	at->beta = at->mb->beta = newbeta;
+  at->beta = at->mb->beta = newbeta;
 
-	AdaptTempering_UpdateTemperature(at);
+  AdaptTempering_UpdateTemperature(at);
 }
 
 at_t *AdaptTempering_MasterCreate(const char *fname, bool bCPT, double tmstep, int suffix)
@@ -394,37 +394,37 @@ at_t *AdaptTempering_MasterCreate(const char *fname, bool bCPT, double tmstep, i
 
   /* this will also initialize settings for member objects such as at->mb */
   at = AdaptTempering_OpenCfg((fname != NULL) ? fname : "at.cfg", tmstep, suffix); 
-	die_if(at == NULL, "failed to load configuration file.\n"); 
-	
-	/* Make the initial temperature = T0 */
-	AdaptTempering_ForceChangeBeta(at, Beta2T(at->T0));
+  die_if(at == NULL, "failed to load configuration file.\n"); 
   
-	/* we only load previous data if it's continuation */
+  /* Make the initial temperature = T0 */
+  AdaptTempering_ForceChangeBeta(at, Beta2T(at->T0));
+  
+  /* we only load previous data if it's continuation */
   if (at_loaddata(at, bCPT) != 0) {
-		fprintf(stderr, "Warning: This simulation is started from checkpoint, while some files are missing. Will assume no previous simulation data is available.\n");
+    fprintf(stderr, "Warning: This simulation is started from checkpoint, while some files are missing. Will assume no previous simulation data is available.\n");
 
-		/* AdaptTempering_Close(at);
-		return NULL; */
+    /* AdaptTempering_Close(at);
+    return NULL; */
   }
 
-	return at;
+  return at;
 }
 
 at_t *AdaptTempering_NonMasterCreate()
 {
-	at_t *at;
+  at_t *at;
 
-	xnew(at, 1);
+  xnew(at, 1);
 
-	return at;
+  return at;
 }
 
 void AdaptTempering_OpenLog(at_t *at)
 {
-	die_if(at == NULL, "failed to load adaptive tempering data.\n");
-	die_if(at->trace_file == NULL, "failed to get the name of trace file. Is this function called by a non-master node?\n");
-	
-	at->log = log_open(at->trace_file); /* set an attempt value for at->beta before reading the value from mb.av */
+  die_if(at == NULL, "failed to load adaptive tempering data.\n");
+  die_if(at->trace_file == NULL, "failed to get the name of trace file. Is this function called by a non-master node?\n");
+  
+  at->log = log_open(at->trace_file); /* set an attempt value for at->beta before reading the value from mb.av */
   
   AdaptTempering_UpdateTemperature(at); /* update temperature */
 }
@@ -432,19 +432,19 @@ void AdaptTempering_OpenLog(at_t *at)
 int AdaptTempering_DumpToFile(at_t *at, const char *fname, int arrmax)
 {
   FILE *fp;
-	char buf[100];
-	char suf[2];
-	suf[0] = at->suffix;
-	suf[1] = '\0';
+  char buf[100];
+  char suf[2];
+  suf[0] = at->suffix;
+  suf[1] = '\0';
 
-	strcpy(buf, fname);
-	if (at->suffix)
-		strcat(buf, suf);
-	
-	if ((fp = fopen(buf, "w")) == NULL)
-	{
-			fprintf(stderr, "cannot write %s\n", fname);
-			return -1;
+  strcpy(buf, fname);
+  if (at->suffix)
+    strcat(buf, suf);
+  
+  if ((fp = fopen(buf, "w")) == NULL)
+  {
+      fprintf(stderr, "cannot write %s\n", fname);
+      return -1;
   }
   at_manifest(at, fp, arrmax);
   fclose(fp);
@@ -456,11 +456,11 @@ int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, boo
   double invwf = 1.0, T1 = 0., T2 = 0., Eav = 0., ndlnwfdbeta;
   int ib, rep;
   double *varr = NULL;
-	double noise;
+  double noise;
   
-	noise = (*at->grand)();
-	
-	die_if (at->grand == NULL, "no gaussian RNG\n");
+  noise = (*at->grand)();
+  
+  die_if (at->grand == NULL, "no gaussian RNG\n");
 
   /* update energy data, change at->beta */
   /* repeat several times to change the temperature */
@@ -482,12 +482,12 @@ int AdaptTempering_Langevin(at_t *at, llong_t step, bool bfirst, bool blast, boo
 
 void AdaptTempering_UpdateTemperature(at_t *at)
 {
-	at->beta = at->mb->beta;
+  at->beta = at->mb->beta;
 }
 
 real AdaptTempering_ForceScaleFactor(at_t *at)
 {
-	return (at->T0 / Beta2T(at->beta));
+  return (at->T0 / Beta2T(at->beta));
 }
 
 void AdaptTempering_Close(at_t *at)
@@ -501,15 +501,15 @@ int AdaptTempering_SyncAllNodes(at_t *at, MPI_Comm comm)
 
   die_if (at == NULL, "null pointer at to at_t\n");
   
-	if (comm != MPI_COMM_NULL) 
+  if (comm != MPI_COMM_NULL) 
     die_if((MPI_SUCCESS != MPI_Comm_size(comm, &mpisize)), "cannot even get MPI size\n");
-	
+  
   if (mpisize > 1) {
     die_if((MPI_SUCCESS != MPI_Comm_rank(comm, &mpirank)), "cannot get MPI rank\n");
 
-		/* Broadcast at_t */
-		die_if((MPI_SUCCESS != MPI_Bcast(at, sizeof(*at), MPI_BYTE, 0, comm)), "%3d/%3d: failed to bcast at (%p), type = *at, size = 1 (%d), comm = 0x%lX\n", mpirank, mpisize, at, 1, (unsigned long) comm);
-	}
+    /* Broadcast at_t */
+    die_if((MPI_SUCCESS != MPI_Bcast(at, sizeof(*at), MPI_BYTE, 0, comm)), "%3d/%3d: failed to bcast at (%p), type = *at, size = 1 (%d), comm = 0x%lX\n", mpirank, mpisize, at, 1, (unsigned long) comm);
+  }
 
   at->mpi_comm = comm;
   at->mpi_size = mpisize;

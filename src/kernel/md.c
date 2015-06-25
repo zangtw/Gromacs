@@ -246,29 +246,29 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
     int chkpt_ret;
 #endif
 
-		/* Below are variables for adaptive tempering */
-		gmx_bool bAdaptTempering = Flags & MD_ADAPTIVETEMPERING;
-		gmx_bool bAdaptTemperingUpdated = 0;
-		gmx_bool do_tempering = 0;
-		at_t *AdaptTempering = NULL;
-		at_repl_ex_t *at_repl_ex = NULL;
-		
-		/* Below are variables for multiple topologies */
-		gmx_bool bMulTop = Flags & MD_MULTOP;
-		mt_ltops_t *MulTopLocal = NULL;
-		real MulTopLocalEnergy = 0, MulTopGlobalEnergy = 0;
-		real MulTopAdditionalEnergy[F_EPOT];
+    /* Below are variables for adaptive tempering */
+    gmx_bool bAdaptTempering = Flags & MD_ADAPTIVETEMPERING;
+    gmx_bool bAdaptTemperingUpdated = 0;
+    gmx_bool do_tempering = 0;
+    at_t *AdaptTempering = NULL;
+    at_repl_ex_t *at_repl_ex = NULL;
+    
+    /* Below are variables for multiple topologies */
+    gmx_bool bMulTop = Flags & MD_MULTOP;
+    mt_ltops_t *MulTopLocal = NULL;
+    real MulTopLocalEnergy = 0, MulTopGlobalEnergy = 0;
+    real MulTopAdditionalEnergy[F_EPOT];
 
-		/* Initialize the adaptive tempering */
-		if(bAdaptTempering)
-		{
-			AdaptTempering = AdaptTemperingInit(AdaptTemperingGetCfgFileName("-at",nfile,fnm,cr), Flags & MD_STARTFROMCPT, ir, cr);
-			if(AdaptTempering == NULL)
-				gmx_fatal(FARGS,"Adaptive tempering needs a *.cfg configuration file");
+    /* Initialize the adaptive tempering */
+    if(bAdaptTempering)
+    {
+      AdaptTempering = AdaptTemperingInit(AdaptTemperingGetCfgFileName("-at",nfile,fnm,cr), Flags & MD_STARTFROMCPT, ir, cr);
+      if(AdaptTempering == NULL)
+        gmx_fatal(FARGS,"Adaptive tempering needs a *.cfg configuration file");
       
-			if(MASTER(cr))
-				fprintf(stderr, "\nNOTE: Adaptive tempering is turned on. For multiple copies, parameter exchange scheme will be used instead of normal temperature exchange scheme by default. (See ref.)\n");
-		}
+      if(MASTER(cr))
+        fprintf(stderr, "\nNOTE: Adaptive tempering is turned on. For multiple copies, parameter exchange scheme will be used instead of normal temperature exchange scheme by default. (See ref.)\n");
+    }
 
     /* Check for special mdrun options */
     bRerunMD = (Flags & MD_RERUN);
@@ -467,14 +467,14 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
             dd_make_local_pull_groups(NULL, ir->pull, mdatoms);
         }
     }
-		
-		if(bMulTop)
-		{
-			MulTopLocal = MulTop_Local_Init(MulTopGlobal);
-			MulTop_Local_SetReferenceTopology(MulTopLocal, top);
+    
+    if(bMulTop)
+    {
+      MulTopLocal = MulTop_Local_Init(MulTopGlobal);
+      MulTop_Local_SetReferenceTopology(MulTopLocal, top);
 
-			MulTop_Local_GetOtherTopologies(MulTopLocal, MulTopGlobal, cr, ir);
-		}
+      MulTop_Local_GetOtherTopologies(MulTopLocal, MulTopGlobal, cr, ir);
+    }
 
     if (DOMAINDECOMP(cr))
     {
@@ -487,11 +487,11 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 
     }
 
-		/* update LocalRecords and LocalExcls(coming next..). This operation must be done after every re-partition of the system. */
-		if(bMulTop)
-		{
-			MulTop_Local_UpdateRecords(MulTopLocal, cr->dd);
-		}
+    /* update LocalRecords and LocalExcls(coming next..). This operation must be done after every re-partition of the system. */
+    if(bMulTop)
+    {
+      MulTop_Local_UpdateRecords(MulTopLocal, cr->dd);
+    }
 
     update_mdatoms(mdatoms, state->lambda[efptMASS]);
 
@@ -562,17 +562,17 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
         }
     }
 
-		if(repl_ex_nst > 0 && MASTER(cr))
-		{
-			/* parameter exchange for adaptive tempering */
-			if(bAdaptTempering)
-				at_repl_ex = AdaptTemperingInitParaExchange(AdaptTempering, fplog, cr->ms, state_global, ir,
-																							      repl_ex_nst, repl_ex_seed);
-			else  /* normal replica exchange */
+    if(repl_ex_nst > 0 && MASTER(cr))
+    {
+      /* parameter exchange for adaptive tempering */
+      if(bAdaptTempering)
+        at_repl_ex = AdaptTemperingInitParaExchange(AdaptTempering, fplog, cr->ms, state_global, ir,
+                                                    repl_ex_nst, repl_ex_seed);
+      else  /* normal replica exchange */
         repl_ex = init_replica_exchange(fplog, cr->ms, state_global, ir,
                                         repl_ex_nst, repl_ex_nex, repl_ex_seed);
 
-		}
+    }
     if (repl_ex_nst > 0)
     {
         /* We need to be sure replica exchange can only occur
@@ -1079,11 +1079,11 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                                     do_verbose && !bPMETuneRunning);
                 wallcycle_stop(wcycle, ewcDOMDEC);
                 /* If using an iterative integrator, reallocate space to match the decomposition */
-		
-								if(bMulTop)
-								{
-									MulTop_Local_UpdateRecords(MulTopLocal, cr->dd);
-								}
+    
+                if(bMulTop)
+                {
+                  MulTop_Local_UpdateRecords(MulTopLocal, cr->dd);
+                }
             }
         }
 
@@ -1174,15 +1174,15 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
 
         do_ene = (do_per_step(step, ir->nstenergy) || bLastStep);
 
-				/* For Adaptive Tempering, energy must be calculated before Langevin steps. */
-				if (bAdaptTempering)
-				{
-					do_tempering = AdaptTemperingDoTemperingThisStep(AdaptTempering, step, bFirstStep, bLastStep, bNS, cr);
-					/* if do tempering this step, total energy must be calculated. */
-					if (do_tempering)
-						do_ene = TRUE;
-				}
-				/*do_ene = TRUE;*/
+        /* For Adaptive Tempering, energy must be calculated before Langevin steps. */
+        if (bAdaptTempering)
+        {
+          do_tempering = AdaptTemperingDoTemperingThisStep(AdaptTempering, step, bFirstStep, bLastStep, bNS, cr);
+          /* if do tempering this step, total energy must be calculated. */
+          if (do_tempering)
+            do_ene = TRUE;
+        }
+        /*do_ene = TRUE;*/
 
         if (do_ene || do_log)
         {
@@ -1212,28 +1212,28 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                 force_flags |= GMX_FORCE_DO_LR;
             }
         }
-				
-				/* Before doing force, update the final topology */
-				if(bMulTop)
-				{
-					if(bFirstStep)
-					{
-						MulTop_Local_InitFinalTopology(MulTopLocal);
-						MulTop_Local_UpdateFinalTopologyBasic(MulTopLocal);
-						MulTop_Local_UpdateFinalTopologyParameters(MulTopLocal, MulTopAdditionalEnergy, ir->opts.ref_t[0]);
-					}
-					else
-						MulTop_Local_UpdateFinalTopologyBasic(MulTopLocal);
-					
-					/* if tempering is applied, update parameters after every temperature move. */
-					if(bAdaptTempering)
-					{
-						if(bAdaptTemperingUpdated && !bFirstStep)
-						{
-							MulTop_Local_UpdateFinalTopologyParameters(MulTopLocal, MulTopAdditionalEnergy, AdaptTemperingCurrentTemperature(AdaptTempering));
-						}
-					}
-				}
+        
+        /* Before doing force, update the final topology */
+        if(bMulTop)
+        {
+          if(bFirstStep)
+          {
+            MulTop_Local_InitFinalTopology(MulTopLocal);
+            MulTop_Local_UpdateFinalTopologyBasic(MulTopLocal);
+            MulTop_Local_UpdateFinalTopologyParameters(MulTopLocal, MulTopAdditionalEnergy, ir->opts.ref_t[0]);
+          }
+          else
+            MulTop_Local_UpdateFinalTopologyBasic(MulTopLocal);
+          
+          /* if tempering is applied, update parameters after every temperature move. */
+          if(bAdaptTempering)
+          {
+            if(bAdaptTemperingUpdated && !bFirstStep)
+            {
+              MulTop_Local_UpdateFinalTopologyParameters(MulTopLocal, MulTopAdditionalEnergy, AdaptTemperingCurrentTemperature(AdaptTempering));
+            }
+          }
+        }
 
         if (shellfc)
         {
@@ -1254,17 +1254,17 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                 nconverged++;
             }
         }
-				else if(bMulTop)
-				{
+        else if(bMulTop)
+        {
           do_force(fplog, cr, ir, step, nrnb, wcycle,
-									 MulTop_Local_GetFinalTopology(MulTopLocal), 
-									 top_global, groups, state->box, state->x, &state->hist,
+                   MulTop_Local_GetFinalTopology(MulTopLocal), 
+                   top_global, groups, state->box, state->x, &state->hist,
                    f, force_vir, mdatoms, enerd, fcd,
                    state->lambda, graph, fr, vsite, mu_tot, t, 
-									 outf->fp_field, ed, bBornRadii,
+                   outf->fp_field, ed, bBornRadii,
                    (bNS ? GMX_FORCE_NS : 0) | force_flags);
-				}
-				else
+        }
+        else
         {
             /* The coordinates (x) are shifted (to get whole molecules)
              * in do_force.
@@ -1278,34 +1278,34 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                      fr, vsite, mu_tot, t, outf->fp_field, ed, bBornRadii,
                      (bNS ? GMX_FORCE_NS : 0) | force_flags);
         }
-				
-				/* force rescaling scheme if adapt tempering */
-				if(bAdaptTempering)
-				{
-					AdaptTemperingRescaleForce(AdaptTempering, mdatoms, f);
+        
+        /* force rescaling scheme if adapt tempering */
+        if(bAdaptTempering)
+        {
+          AdaptTemperingRescaleForce(AdaptTempering, mdatoms, f);
 
-					bAdaptTemperingUpdated = 0;
-				}
+          bAdaptTemperingUpdated = 0;
+        }
 
-				/* After doing force, add the additional energy terms. */
-				if(bMulTop)
-				{
-					if(bAdaptTempering)
-						if(do_tempering)
-						{
-							MulTopLocalEnergy = MulTop_Local_OnlyCalcAdditionalEnergy(MulTopLocal, fr, state, enerd, AdaptTemperingCurrentTemperature(AdaptTempering));
-							MulTopGlobalEnergy = MulTop_Global_GetEnergy(MulTopGlobal, MulTopLocalEnergy, cr);
-						}
-					
-					if(MASTER(cr))
-					{
-						for(i=0; i<F_EPOT; i++)
-						{
-							enerd->term[i] += MulTopAdditionalEnergy[i];
-							enerd->term[F_EPOT] += MulTopAdditionalEnergy[i];
-						}
-					}
-				}
+        /* After doing force, add the additional energy terms. */
+        if(bMulTop)
+        {
+          if(bAdaptTempering)
+            if(do_tempering)
+            {
+              MulTopLocalEnergy = MulTop_Local_OnlyCalcAdditionalEnergy(MulTopLocal, fr, state, enerd, AdaptTemperingCurrentTemperature(AdaptTempering));
+              MulTopGlobalEnergy = MulTop_Global_GetEnergy(MulTopGlobal, MulTopLocalEnergy, cr);
+            }
+          
+          if(MASTER(cr))
+          {
+            for(i=0; i<F_EPOT; i++)
+            {
+              enerd->term[i] += MulTopAdditionalEnergy[i];
+              enerd->term[F_EPOT] += MulTopAdditionalEnergy[i];
+            }
+          }
+        }
 
         GMX_BARRIER(cr->mpi_comm_mygroup);
 
@@ -2108,16 +2108,16 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                         enerd->term[F_ETOT]);
             }
         }
-				
-				if(bAdaptTempering)
-					if(do_tempering)
-					/* Update temperature */
-						bAdaptTemperingUpdated = AdaptTemperingUpdate(AdaptTempering, step,
-							bFirstStep, bLastStep, do_ene,(mdof_flags & MDOF_XTC),
-							(mdof_flags & MDOF_CPT), cr, enerd, bMulTop, MulTopGlobalEnergy);
+        
+        if(bAdaptTempering)
+          if(do_tempering)
+          /* Update temperature */
+            bAdaptTemperingUpdated = AdaptTemperingUpdate(AdaptTempering, step,
+              bFirstStep, bLastStep, do_ene,(mdof_flags & MDOF_XTC),
+              (mdof_flags & MDOF_CPT), cr, enerd, bMulTop, MulTopGlobalEnergy);
 
         /* #########  END PREPARING EDR OUTPUT  ###########  */
-		
+    
         /* Time for performance */
         if (((step % stepout) == 0) || bLastStep)
         {
@@ -2194,18 +2194,18 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
         if ((repl_ex_nst > 0) && (step > 0) && !bLastStep &&
             do_per_step(step, repl_ex_nst))
         {
-						if(bAdaptTempering) /* Parameter exchange */
-						{
-							bExchanged = AdaptTemperingDoParaExchange(AdaptTempering, fplog, cr, 
-									                                            at_repl_ex, state_global, enerd,
+            if(bAdaptTempering) /* Parameter exchange */
+            {
+              bExchanged = AdaptTemperingDoParaExchange(AdaptTempering, fplog, cr, 
+                                                              at_repl_ex, state_global, enerd,
                                                               state, step, t);
-						}
-						else /* normal replica exchange */
-						{
-							bExchanged = replica_exchange(fplog, cr, repl_ex,
+            }
+            else /* normal replica exchange */
+            {
+              bExchanged = replica_exchange(fplog, cr, repl_ex,
                                           state_global, enerd,
                                           state, step, t);
-						}
+            }
 
             if (bExchanged && DOMAINDECOMP(cr))
             {
@@ -2214,11 +2214,11 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                                     state, &f, mdatoms, top, fr,
                                     vsite, shellfc, constr,
                                     nrnb, wcycle, FALSE);
-		
-								if(bMulTop)
-								{
-									MulTop_Local_UpdateRecords(MulTopLocal, cr->dd);
-								}
+    
+                if(bMulTop)
+                {
+                  MulTop_Local_UpdateRecords(MulTopLocal, cr->dd);
+                }
             }
         }
 
@@ -2392,12 +2392,12 @@ double do_md(FILE *fplog, t_commrec *cr, int nfile, const t_filenm fnm[],
                 tcount/step_rel);
     }
 
-		if (repl_ex_nst > 0 && MASTER(cr))
+    if (repl_ex_nst > 0 && MASTER(cr))
     {
-			if (bAdaptTempering) /* Parameter exchange */
+      if (bAdaptTempering) /* Parameter exchange */
         AdaptTemperingPrintExchangeStatistics(AdaptTempering, fplog, at_repl_ex);
-			else    /* normal replica exchange */
-				print_replica_exchange_statistics(fplog, repl_ex);
+      else    /* normal replica exchange */
+        print_replica_exchange_statistics(fplog, repl_ex);
     }
 
     runtime->nsteps_done = step_rel;

@@ -404,8 +404,8 @@ int cmain(int argc, char *argv[])
         { efDAT, "-membed", "membed",   ffOPTRD },
         { efTOP, "-mp",     "membed",   ffOPTRD },
         { efNDX, "-mn",     "membed",   ffOPTRD },
-			  { efMDP, "-at",     NULL,       ffOPTRD },  /* at.cfg, only for do_md */
-			  { efMDP, "-addtop", NULL,       ffOPTRD },  /* add additional topology */
+        { efMDP, "-at",     NULL,       ffOPTRD },  /* at.cfg, only for do_md */
+        { efMDP, "-addtop", NULL,       ffOPTRD },  /* add additional topology */
     };
 #define NFILE asize(fnm)
 
