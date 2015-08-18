@@ -117,6 +117,10 @@ int ifunc_index(directive d, int type)
             {
                 return F_LJC14_Q;
             }
+            else if (type == 3)
+            {
+                return F_GAUSS14;
+            }
             else
             {
                 gmx_fatal(FARGS, "Invalid pairs type %d", type);

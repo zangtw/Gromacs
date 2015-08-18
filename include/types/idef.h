@@ -82,6 +82,7 @@ enum {
     F_IDIHS,
     F_PIDIHS,
     F_TABDIHS,
+    F_GAUSS14,          /* New interaction for Gaussian-like restraints. */
     F_CMAP,
     F_GB12,
     F_GB13,
@@ -272,6 +273,9 @@ typedef union
     struct {
         real buf[MAXFORCEPARAM];
     } generic;                                               /* Conversion */
+    struct {
+        real mu, sigma, height;
+    } gauss;
 } t_iparams;
 
 typedef int t_functype;

@@ -3669,6 +3669,95 @@ real tab_dihs(int nbonds,
     return vtot;
 }
 
+static float fastpow2 (float p)
+{
+  union { float f; uint32_t i; } vp = { p };
+  int sign = (vp.i >> 31);
+  int w = p;
+  float z = p - w + sign;
+  union { uint32_t i; float f; } v = { (1 << 23) * (p + 121.2740838f + 27.7280233f / (4.84252568f - z) - 1.49012907f * z) };
+  return v.f;
+}
+
+static void gauss_kernel(real mu, real sigma, real h, real dr, real *v, real *f)
+{
+  static int init = 0;
+  static float MINUS_INV_SQRT_2_PI;
+  static float GAUSSIAN_LIMIT;
+
+  if (!init)
+  {
+    MINUS_INV_SQRT_2_PI = -1.0 / sqrt(3.14159265358979323846 * 2);
+    GAUSSIAN_LIMIT = sqrt(1400);
+
+    init = 1;
+  }
+
+  float inv_sigma = 1.0 / sigma;
+  float x = ( dr - mu ) * inv_sigma;
+     
+  if (x > GAUSSIAN_LIMIT || x < -GAUSSIAN_LIMIT) 
+  {
+    *v = *f = 0;
+    return;
+  }
+    
+  *v = fastpow2(-0.72134752f * (x * x)) * MINUS_INV_SQRT_2_PI * inv_sigma * h;
+  *f = (*v) * (-x * inv_sigma);
+}
+
+real gauss( int nbonds,
+            const t_iatom forceatoms[], const t_iparams forceparams[],
+            const rvec x[], rvec f[], rvec fshift[],
+            const t_pbc *pbc, const t_graph *g,
+            real lambda, real *dvdlambda,
+            const t_mdatoms *md, t_fcdata *fcd,
+            int *global_atom_index)
+{
+  int  i, m, ki, ai, aj, type;
+  real dr, dr2, inv_r, fbond, vbond, fij, vtot;
+  rvec dx;
+
+  vtot = 0.0;
+  for (i = 0; (i < nbonds); )
+  {
+    type = forceatoms[i++];
+    ai   = forceatoms[i++];
+    aj   = forceatoms[i++];
+
+    if(forceparams[type].gauss.height == 0.0)
+      continue;
+
+    ki   = pbc_rvec_sub(pbc, x[ai], x[aj], dx); 
+    dr2  = iprod(dx, dx);                       
+        
+    if (dr2 == 0.0)
+      continue;
+    
+    inv_r = gmx_invsqrt(dr2);
+    dr    = dr2 * inv_r;                
+
+    gauss_kernel(forceparams[type].gauss.mu,
+                 forceparams[type].gauss.sigma,
+                 forceparams[type].gauss.height,
+                 dr, &vbond, &fbond); 
+    
+    vtot  += vbond;            
+    fbond *= inv_r; 
+
+    for (m = 0; (m < DIM); m++)     /*  15		*/
+    {
+        fij                 = fbond*dx[m];
+        f[ai][m]           += fij;
+        f[aj][m]           -= fij;
+        fshift[ki][m]      += fij;
+        fshift[CENTRAL][m] -= fij;
+    }
+  }
+    
+  return vtot;
+}
+
 static unsigned
 calc_bonded_reduction_mask(const t_idef *idef,
                            int shift,
