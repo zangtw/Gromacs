@@ -538,6 +538,13 @@ static void iparams_copy(t_iparams *tar, t_iparams *src, int ftype)
       tar->lj14.c12B = src->lj14.c12B;
       break;
     }
+  case F_GAUSS14:
+		{
+      tar->gauss.mu = src->gauss.mu;
+      tar->gauss.sigma = src->gauss.sigma;
+      tar->gauss.height = src->gauss.height;
+			break;
+		}
   case F_CONSTR:
     tar->constr.dA = src->constr.dA;
     tar->constr.dB = src->constr.dB;
