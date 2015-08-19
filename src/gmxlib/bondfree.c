@@ -3671,11 +3671,12 @@ real tab_dihs(int nbonds,
 
 static float fastpow2 (float p)
 {
-  union { float f; uint32_t i; } vp = { p };
-  int sign = (vp.i >> 31);
-  int w = p;
-  float z = p - w + sign;
-  union { uint32_t i; float f; } v = { (1 << 23) * (p + 121.2740838f + 27.7280233f / (4.84252568f - z) - 1.49012907f * z) };
+  float offset = (p < 0) ? 1.0f : 0.0f;
+  float clipp = (p < -126) ? -126.0f : p;
+  int w = clipp;
+  float z = clipp - w + offset;
+  union { uint32_t i; float f; } v = { (uint32_t) ( (1 << 23) * (clipp + 121.2740575f + 27.7280233f / (4.84252568f - z) - 1.49012907f * z) ) };
+
   return v.f;
 }
 
@@ -3708,6 +3709,7 @@ real gauss( int nbonds,
   int  i, m, ki, ai, aj, type;
   real dr, dr2, inv_r, fbond, vbond, fij, vtot;
   rvec dx;
+  ivec dt;
 
   vtot = 0.0;
   for (i = 0; (i < nbonds); )
@@ -3735,6 +3737,11 @@ real gauss( int nbonds,
     
     vtot  += vbond;            
     fbond *= inv_r; 
+    
+    if (g) { 
+      ivec_sub(SHIFT_IVEC(g,ai),SHIFT_IVEC(g,aj),dt);
+      ki = IVEC2IS(dt);
+    }
 
     for (m = 0; (m < DIM); m++)     /*  15		*/
     {

@@ -472,18 +472,9 @@ static void iparams_cal(t_iparams *tar, t_iparams *src0, t_iparams *src1,
     }
     break;
   case F_GAUSS14:
-    if(!Zpara1)
-    {
-      tar->gauss.mu = src1->gauss.mu;
-      tar->gauss.sigma = src1->gauss.sigma;
-      tar->gauss.height = src1->gauss.height * w[1];
-    }
-    else
-    {
-      tar->gauss.mu = 0;
-      tar->gauss.sigma = 1;
-      tar->gauss.height = 0;
-    }
+    tar->gauss.mu = src1->gauss.mu;
+    tar->gauss.sigma = src1->gauss.sigma;
+    tar->gauss.height = src1->gauss.height * w[1];
     break;
   case F_CONSTR:
     tar->constr.dA = src0->constr.dA;
