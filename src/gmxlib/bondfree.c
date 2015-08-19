@@ -3682,16 +3682,7 @@ static float fastpow2 (float p)
 static void gauss_kernel(real mu, real sigma, real h, real dr, real *v, real *f)
 {
   static int init = 0;
-  static float MINUS_INV_SQRT_2_PI;
-  static float GAUSSIAN_LIMIT;
-
-  if (!init)
-  {
-    MINUS_INV_SQRT_2_PI = -1.0 / sqrt(3.14159265358979323846 * 2);
-    GAUSSIAN_LIMIT = sqrt(1400);
-
-    init = 1;
-  }
+  static float GAUSSIAN_LIMIT = 40;
 
   float inv_sigma = 1.0 / sigma;
   float x = ( dr - mu ) * inv_sigma;
@@ -3702,7 +3693,7 @@ static void gauss_kernel(real mu, real sigma, real h, real dr, real *v, real *f)
     return;
   }
     
-  *v = fastpow2(-0.72134752f * (x * x)) * MINUS_INV_SQRT_2_PI * inv_sigma * h;
+  *v = -fastpow2(-0.72134752f * (x * x)) * h;
   *f = (*v) * (-x * inv_sigma);
 }
 

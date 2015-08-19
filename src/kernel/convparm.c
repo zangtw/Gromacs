@@ -283,6 +283,11 @@ assign_param(t_functype ftype, t_iparams *newparam,
             newparam->ljcnb.qj = old[1];
             set_ljparams(comb, reppow, old[2], old[3], &newparam->ljcnb.c6, &newparam->ljcnb.c12);
             break;
+        case F_GAUSS14:
+            newparam->gauss.mu  = old[0];
+            newparam->gauss.sigma = old[1];
+            newparam->gauss.height  = old[2];
+            break;
         case F_LJ:
             set_ljparams(comb, reppow, old[0], old[1], &newparam->lj.c6, &newparam->lj.c12);
             break;

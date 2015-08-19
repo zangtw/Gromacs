@@ -128,6 +128,11 @@ static gmx_bool ip_pert(int ftype, const t_iparams *ip)
             bPert = (ip->lj14.c6A  != ip->lj14.c6B ||
                      ip->lj14.c12A != ip->lj14.c12B);
             break;
+        case F_GAUSS14:
+            bPert = ((ip->gauss.mu != ip->gauss.mu) ||
+                     (ip->gauss.sigma != ip->gauss.sigma) ||
+                     (ip->gauss.height != ip->gauss.height));
+            break;
         case F_CMAP:
             bPert = FALSE;
             break;

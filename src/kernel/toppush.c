@@ -913,10 +913,11 @@ void push_nbt(directive d, t_nbparam **nbt, gpp_atomtype_t atype,
     const char *form3 = "%*s%*s%*s%lf%lf%lf";
     const char *form4 = "%*s%*s%*s%lf%lf%lf%lf";
     const char *form5 = "%*s%*s%*s%lf%lf%lf%lf%lf";
+    const char *form6 = "%*s%*s%*s%lf%lf%lf%lf%lf%lf";
     char        a0[80], a1[80];
     int         i, f, n, ftype, atnr, nrfp;
-    double      c[4], dum;
-    real        cr[4], sig6;
+    double      c[6], dum;
+    real        cr[6], sig6;
     atom_id     ai, aj;
     t_nbparam  *nbp;
     gmx_bool    bId;
@@ -964,6 +965,22 @@ void push_nbt(directive d, t_nbparam **nbt, gpp_atomtype_t atype,
         {
             incorrect_n_param(wi);
             return;
+        }
+    }
+    else if (ftype == F_GAUSS14)
+    {
+        n = sscanf(pline, form6, &c[0], &c[1], &c[2], &c[3], &c[4], &c[5]);
+        if (n < 3)
+        {
+            too_few(wi);
+            return;
+        }
+        /* When the B topology parameters are not set,
+         * copy them from topology A
+         */
+        for (i = n; i < nrfp; i++)
+        {
+            c[i] = c[i-2];
         }
     }
     else if (nrfp == 2)
@@ -1859,6 +1876,11 @@ void push_bond(directive d, t_params bondtype[], t_params bond[],
         /* Defaults are not supported here */
         bFoundA = FALSE;
         bFoundB = TRUE;
+    }
+    else if (ftype == F_GAUSS14)
+    {
+        bFoundA = default_nb_params(ftype, bondtype, at, &param, 0, FALSE, bGenPairs);
+        bFoundB = default_nb_params(ftype, bondtype, at, &param, 0, TRUE, bGenPairs);
     }
     else
     {

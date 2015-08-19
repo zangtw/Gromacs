@@ -1750,6 +1750,11 @@ void do_iparams(t_fileio *fio, t_functype ftype, t_iparams *iparams,
             gmx_fio_do_real(fio, iparams->ljcnb.c6);
             gmx_fio_do_real(fio, iparams->ljcnb.c12);
             break;
+        case F_GAUSS14:
+            gmx_fio_do_real(fio, iparams->gauss.mu);
+            gmx_fio_do_real(fio, iparams->gauss.sigma);
+            gmx_fio_do_real(fio, iparams->gauss.height);
+            break;
         case F_PDIHS:
         case F_PIDIHS:
         case F_ANGRES:

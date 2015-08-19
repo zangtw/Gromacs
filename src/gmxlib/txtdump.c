@@ -1069,6 +1069,11 @@ void pr_iparams(FILE *fp, t_functype ftype, t_iparams *iparams)
                     iparams->ljcnb.qi, iparams->ljcnb.qj,
                     iparams->ljcnb.c6, iparams->ljcnb.c12);
             break;
+        case F_GAUSS14:
+            fprintf(fp, "mu=%15.8e, sigma=%15.8e, h=%15.8e\n",
+                    iparams->gauss.mu, iparams->gauss.sigma,
+                    iparams->gauss.height);
+            break;
         case F_PDIHS:
         case F_PIDIHS:
         case F_ANGRES:
