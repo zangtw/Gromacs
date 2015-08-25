@@ -3695,7 +3695,7 @@ static void gauss_kernel(real mu, real sigma, real h, real dr, real *v, real *f)
   }
     
   *v = -fastpow2(-0.72134752f * (x * x)) * h;
-  *f = (*v) * (-x * inv_sigma);
+  *f = (*v) * (x * inv_sigma);
 }
 
 real gauss( int nbonds,
